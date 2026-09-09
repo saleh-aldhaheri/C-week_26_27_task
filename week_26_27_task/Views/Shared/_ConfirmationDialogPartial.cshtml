@@ -1,0 +1,44 @@
+<script>
+  const deleteButtons = document.querySelectorAll('.btn-delete');
+
+  function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      const url = this.getAttribute("href");
+      const darkMode = isDarkMode();
+
+      const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+          popup: 'rounded-3 shadow-lg border-0',
+          title: 'fs-3 fw-bold',
+          htmlContainer: 'fs--1',
+          confirmButton: 'btn btn-danger btn-sm px-4 mx-2',
+          cancelButton: 'btn btn-falcon-default btn-sm px-4 mx-2',
+        },
+        buttonsStyling: false,
+        background: darkMode ? '#0b1727' : '#ffffff',
+        color: darkMode ? '#e3ebf6' : '#232e3c',
+      });
+
+      swalWithBootstrapButtons.fire({
+        title: "Delete this item?",
+        html: "This action <strong>cannot be undone</strong>. All associated data will be permanently removed.",
+        icon: "warning",
+        iconColor: "#e63757",
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Yes, delete it',
+        cancelButtonText: '<i class="fas fa-times me-1"></i> Cancel',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = url;
+        }
+      });
+    });
+  });
+</script>

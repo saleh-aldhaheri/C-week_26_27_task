@@ -1,0 +1,217 @@
+@model MovieWithFilterAndPaginationVM
+
+<div id="tableExample5">
+
+    <div class="d-flex align-items-center justify-content-end my-3">
+        <a class="btn btn-falcon-success btn-sm"
+           asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+           asp-action="Create"
+           asp-area="@AreaConstants.ADMIN_AREA">
+            <span class="fas fa-plus" data-fa-transform="shrink-3 down-2"></span><span class="ms-1">New</span>
+        </a>
+    </div>
+
+    <form method="get"
+          asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+          asp-action="Index"
+          asp-area="@AreaConstants.ADMIN_AREA">
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Search</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent"><span class="fa fa-search fs--1 text-600"></span></span>
+                    <input class="form-control shadow-none" type="search" placeholder="Title or description..." aria-label="search" name="search" value="@Model.Search" />
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Category</label>
+                <select class="form-select form-select-sm" aria-label="Filter by category" name="CategoriasId">
+                    <option value="" selected="@(Model.CategoriasId == null)">All categories</option>
+                    @foreach (var category in Model.Categorias ?? Enumerable.Empty<Category>())
+                    {
+                        <option value="@category.Id" selected="@(Model.CategoriasId == category.Id)">@category.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Cinema</label>
+                <select class="form-select form-select-sm" aria-label="Filter by cinema" name="CinemaId">
+                    <option value="" selected="@(Model.CinemaId == null)">All cinemas</option>
+                    @foreach (var cinema in Model.Cinemas ?? Enumerable.Empty<Cinema>())
+                    {
+                        <option value="@cinema.Id" selected="@(Model.CinemaId == cinema.Id)">@cinema.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Price range</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent">$</span>
+                    <input class="form-control shadow-none" type="number" step="0.01" min="0" placeholder="Min" name="MinPrice" value="@Model.MinPrice" />
+                    <span class="input-group-text bg-transparent">to</span>
+                    <input class="form-control shadow-none" type="number" step="0.01" min="0" placeholder="Max" name="MaxPrice" value="@Model.MaxPrice" />
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Start date</label>
+                <input class="form-control form-control-sm shadow-none" type="date" name="StartAt" value="@(Model.StartAt?.ToString("yyyy-MM-dd"))" />
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Page size</label>
+                <select class="form-select form-select-sm" aria-label="Page size" name="Pagination.PageSize">
+                    @foreach (var size in new[] { 5, 15, 25, 50, 75, 100 })
+                    {
+                        if (Model.Pagination.PageSize == size)
+                        {
+                            <option value="@size" selected>@size / page</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size / page</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <button type="submit" class="btn btn-sm btn-falcon-primary">Apply</button>
+            <a class="btn btn-sm btn-falcon-default"
+               asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+               asp-action="Index"
+               asp-area="@AreaConstants.ADMIN_AREA">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive scrollbar">
+        <table class="table table-bordered table-striped fs--1 mb-0">
+            <thead class="bg-200 text-900">
+                <tr>
+                    <th class="align-middle">Title</th>
+                    <th class="align-middle">Category</th>
+                    <th class="align-middle">Cinema</th>
+                    <th class="align-middle">Price</th>
+                    <th class="align-middle">Start at</th>
+                    <th class="align-middle text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var movie in Model.Movies ?? Enumerable.Empty<Movie>())
+                {
+                    <tr>
+                        <th class="align-middle">@movie.Title</th>
+                        <td class="align-middle">@movie.Category?.Name</td>
+                        <td class="align-middle">@movie.Cinema?.Name</td>
+                        <td class="align-middle">@movie.Price.ToString("C")</td>
+                        <td class="align-middle">@movie.StartAt.ToString("g")</td>
+                        <td class="align-middle white-space-nowrap text-end pe-3">
+                            <div class="d-flex gap-3 justify-content-end">
+                                <a class="text-warning" title="Update"
+                                   asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                                   asp-action="View"
+                                   asp-area="@AreaConstants.ADMIN_AREA"
+                                   asp-route-id="@movie.Id">
+
+                                 <span class="fas fa-eye"></span>
+                                </a>
+                                <a class="text-warning" title="Update"
+                                   asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                                   asp-action="Update"
+                                   asp-area="@AreaConstants.ADMIN_AREA"
+                                   asp-route-id="@movie.Id">
+                                    <span class="fas fa-edit"></span>
+                                </a>
+                                <a class="text-danger btn-delete" title="Delete"
+                                   asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                                   asp-action="Delete"
+                                   asp-area="@AreaConstants.ADMIN_AREA"
+                                   asp-route-id="@movie.Id">
+                                    <span class="fas fa-trash-alt"></span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center mt-3">
+
+        @if (Model.Movies != null && Model.Movies.Any())
+        {
+            @if (Model.Pagination.Page > 1)
+            {
+                <a class="btn btn-sm btn-falcon-default me-1" title="Previous"
+                   asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                   asp-action="Index"
+                   asp-area="@AreaConstants.ADMIN_AREA"
+                   asp-route-Pagination.Page="@(Model.Pagination.Page - 1)"
+                   asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+                   asp-route-search="@Model.Search"
+                   asp-route-CategoriasId="@Model.CategoriasId"
+                   asp-route-CinemaId="@Model.CinemaId"
+                   asp-route-MinPrice="@Model.MinPrice"
+                   asp-route-MaxPrice="@Model.MaxPrice"
+                   asp-route-StartAt="@Model.StartAt">
+                    <span class="fas fa-chevron-left"></span>
+                </a>
+            }
+
+            if (Model.Pagination.TotalPages > 1)
+            {
+                <ul class="pagination mb-0">
+                    @for (int i = 1; i <= Model.Pagination.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.Pagination.Page == i ? "active" : "")">
+                            <a class="page btn btn-sm @(Model.Pagination.Page == i ? "btn-falcon-primary" : "btn-falcon-default") me-1"
+                               asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                               asp-action="Index"
+                               asp-area="@AreaConstants.ADMIN_AREA"
+                               asp-route-Pagination.Page="@i"
+                               asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-CategoriasId="@Model.CategoriasId"
+                               asp-route-CinemaId="@Model.CinemaId"
+                               asp-route-MinPrice="@Model.MinPrice"
+                               asp-route-MaxPrice="@Model.MaxPrice"
+                               asp-route-StartAt="@Model.StartAt">@i</a>
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if (Model.Pagination.Page < Model.Pagination.TotalPages)
+            {
+                <a class="btn btn-sm btn-falcon-default ms-1" title="Next"
+                   asp-controller="@ControllerConstants.MOVIE_CONTROLLER"
+                   asp-action="Index"
+                   asp-area="@AreaConstants.ADMIN_AREA"
+                   asp-route-Pagination.Page="@(Model.Pagination.Page + 1)"
+                   asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+                   asp-route-search="@Model.Search"
+                   asp-route-CategoriasId="@Model.CategoriasId"
+                   asp-route-CinemaId="@Model.CinemaId"
+                   asp-route-MinPrice="@Model.MinPrice"
+                   asp-route-MaxPrice="@Model.MaxPrice"
+                   asp-route-StartAt="@Model.StartAt">
+                    <span class="fas fa-chevron-right"></span>
+                </a>
+            }
+        }
+    </div>
+</div>
+
+@section DeleteConfirmation {
+    <partial name="_ConfirmationDialogPartial" />
+}
+
+@section Notification {
+    <partial name="_NotificationPartial" />
+}

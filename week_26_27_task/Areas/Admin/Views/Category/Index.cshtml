@@ -1,0 +1,171 @@
+@model CategoryWithFilterAndPaginationVM
+
+<div id="tableExample5">
+
+  <div class="d-flex align-items-center justify-content-end my-3">
+    <a class="btn btn-falcon-success btn-sm"
+       asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+       asp-action="Create"
+       asp-area="@AreaConstants.ADMIN_AREA">
+      <span class="fas fa-plus" data-fa-transform="shrink-3 down-2"></span><span class="ms-1">New</span>
+    </a>
+  </div>
+
+  <form method="get"
+        asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+        asp-action="Index"
+        asp-area="@AreaConstants.ADMIN_AREA">
+
+    <div class="row justify-content-between g-0 mb-3">
+      <div class="col-auto col-sm-5">
+        <div class="input-group">
+          <input class="form-control form-control-sm shadow-none" type="search" placeholder="Search..." aria-label="search" name="search" value="@Model.Search" />
+          <div class="input-group-text bg-transparent"><span class="fa fa-search fs--1 text-600"></span></div>
+        </div>
+      </div>
+
+      <div class="col-auto col-sm-3">
+        <select class="form-select" aria-label="Filter by status" name="status">
+          <option value="" selected="@(Model.Status == null)">All</option>
+          <option value="true" selected="@(Model.Status == true)">Active</option>
+          <option value="false" selected="@(Model.Status == false)">InActive</option>
+        </select>
+      </div>
+
+      <div class="col-auto col-sm-2">
+        <select class="form-select" aria-label="Page size" name="Pagination.PageSize">
+          @foreach (var size in new[] { 5, 15, 25, 50, 75, 100 })
+          {
+              if (Model.Pagination.PageSize == size)
+              {
+                  <option value="@size" selected>@size / page</option>
+              }
+              else
+              {
+                  <option value="@size">@size / page</option>
+              }
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+      <button type="submit" class="btn btn-sm btn-falcon-primary">Apply</button>
+      <a class="btn btn-sm btn-falcon-default"
+         asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+         asp-action="Index"
+         asp-area="@AreaConstants.ADMIN_AREA">Reset</a>
+    </div>
+  </form>
+
+  <div class="table-responsive scrollbar">
+    <table class="table table-bordered table-striped fs--1 mb-0">
+      <thead class="bg-200 text-900">
+        <tr>
+          <th class="align-middle">Name</th>
+          <th class="align-middle">Description</th>
+          <th class="align-middle">Status</th>
+          <th class="align-middle text-end pe-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var category in Model.Categories)
+        {
+          <tr>
+            <th class="align-middle">@category.Name</th>
+            <td class="align-middle  text-truncate" style="max-width= 100px">@category.Description</td>
+            <td class="align-middle">
+              @if (category.Status)
+              {
+                <span class="badge badge-soft-success">Active</span>
+              }
+              else
+              {
+                <span class="badge badge-soft-secondary">InActive</span>
+              }
+            </td>
+            <td class="align-middle white-space-nowrap text-end pe-3">
+              <div class="d-flex gap-3 justify-content-end">
+                <a class="text-warning" title="Update"
+                   asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+                   asp-action="Update"
+                   asp-area="@AreaConstants.ADMIN_AREA"
+                   asp-route-id="@category.Id">
+                  <span class="fas fa-edit"></span>
+                </a>
+                <a class="text-danger btn-delete" title="Delete"
+                   asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+                   asp-action="Delete"
+                   asp-area="@AreaConstants.ADMIN_AREA"
+                   asp-route-id="@category.Id">
+                  <span class="fas fa-trash-alt"></span>
+                </a>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-center align-items-center mt-3">
+
+    @if (Model.Categories.Any())
+    {
+      @if (Model.Pagination.Page > 1)
+      {
+        <a class="btn btn-sm btn-falcon-default me-1" title="Previous"
+           asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+           asp-action="Index"
+           asp-area="@AreaConstants.ADMIN_AREA"
+           asp-route-Pagination.Page="@(Model.Pagination.Page - 1)"
+           asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+           asp-route-search="@Model.Search"
+           asp-route-status="@Model.Status">
+          <span class="fas fa-chevron-left"></span>
+        </a>
+      }
+
+      if (Model.Pagination.TotalPages > 1)
+      {
+        <ul class="pagination mb-0">
+          @for (int i = 1; i <= Model.Pagination.TotalPages; i++)
+          {
+            <li class="page-item @(Model.Pagination.Page == i ? "active" : "")">
+              <a class="page btn btn-sm @(Model.Pagination.Page == i ? "btn-falcon-primary" : "btn-falcon-default") me-1"
+                 asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+                 asp-action="Index"
+                 asp-area="@AreaConstants.ADMIN_AREA"
+                 asp-route-Pagination.Page="@i"
+                 asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+                 asp-route-search="@Model.Search"
+                 asp-route-status="@Model.Status">@i</a>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (Model.Pagination.Page < Model.Pagination.TotalPages)
+      {
+        <a class="btn btn-sm btn-falcon-default ms-1" title="Next"
+           asp-controller="@ControllerConstants.CATEGORY_CONTROLLER"
+           asp-action="Index"
+           asp-area="@AreaConstants.ADMIN_AREA"
+           asp-route-Pagination.Page="@(Model.Pagination.Page + 1)"
+           asp-route-Pagination.PageSize="@Model.Pagination.PageSize"
+           asp-route-search="@Model.Search"
+           asp-route-status="@Model.Status">
+          <span class="fas fa-chevron-right"></span>
+        </a>
+      }
+    }
+  </div>
+</div>
+
+@section DeleteConfirmation {
+  <partial name="_ConfirmationDialogPartial" />
+}
+
+@section Notification {
+  <partial name="_NotificationPartial" />
+}

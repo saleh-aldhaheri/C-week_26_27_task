@@ -1,0 +1,129 @@
+@model DashboardVm
+
+<div class="row g-3 mb-3">
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-between-center">
+                <div>
+                    <h6 class="text-700 mb-1">Movies</h6>
+                    <h3 class="mb-0 text-primary">@Model.MoviesCount</h3>
+                </div>
+                <div class="fs-1 text-primary opacity-25"><span class="fas fa-film"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-between-center">
+                <div>
+                    <h6 class="text-700 mb-1">Actors</h6>
+                    <h3 class="mb-0 text-success">@Model.ActorsCount</h3>
+                </div>
+                <div class="fs-1 text-success opacity-25"><span class="fas fa-user"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-between-center">
+                <div>
+                    <h6 class="text-700 mb-1">Categories</h6>
+                    <h3 class="mb-0 text-warning">@Model.CategoriesCount</h3>
+                </div>
+                <div class="fs-1 text-warning opacity-25"><span class="fas fa-tags"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-between-center">
+                <div>
+                    <h6 class="text-700 mb-1">Cinemas</h6>
+                    <h3 class="mb-0 text-info">@Model.CinemasCount</h3>
+                </div>
+                <div class="fs-1 text-info opacity-25"><span class="fas fa-building"></span></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Movie Prices Over Time</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.MoviePrices is not null && Model.MoviePrices.Any())
+                {
+                    <canvas id="moviePricesChart" height="90"></canvas>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No movie price data available.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.MoviePrices is not null && Model.MoviePrices.Any())
+    {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+        <script>
+            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.MoviePrices.Select(m => m.StartAt.ToString("MMM d, yyyy"))));
+
+            const prices = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.MoviePrices.Select(m => m.Price)));
+
+            const titles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.MoviePrices.Select(m => m.Title)));
+
+            const ctx = document.getElementById('moviePricesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price ($)',
+                        data: prices,
+                        borderColor: '#2c7be5',
+                        backgroundColor: 'rgba(44, 123, 229, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const idx = context.dataIndex;
+                                    return titles[idx] + ': $' + context.parsed.y;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) { return '$' + value; }
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    }
+}

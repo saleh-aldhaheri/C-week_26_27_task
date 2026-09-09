@@ -1,0 +1,34 @@
+@model Category
+
+<form method="post">
+
+  <div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" required minlength="3" maxlength="100">
+    <div class="form-text">Required, between 3 and 100 characters.</div>
+    <span class="text-danger" asp-validation-for="Name"></span>
+  <div class="mb-3">
+    <label asp-for="Description" class="form-label"></label>
+    <textarea asp-for="Description" class="form-control" rows="3" maxlength="1000"> </textarea>
+    <div class="form-text">Optional, up to 1000 characters.</div>
+    <span class="text-danger" asp-validation-for="Description"></span>
+  </div>
+
+  <div class="mb-3 form-check form-switch">
+            @if (Model?.Status != null &&  Model.Status)
+    {
+        <input asp-for="Status" class="form-check-input" role="switch" Selected>
+    }
+    else
+    {
+       <input asp-for="Status" class="form-check-input" role="switch">
+    }
+    <label asp-for="Status" class="form-check-label">Active</label>
+    <span asp-validation-for="Status" class="text-danger"></span>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

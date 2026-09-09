@@ -1,0 +1,96 @@
+@model ViewMovieVm
+
+<div class="container my-4">
+
+    <div class="row g-4">
+
+        <div class="col-12 col-md-5">
+            @if (!string.IsNullOrEmpty(Model.Movie.MainImg))
+            {
+                <img src="~/assets/images/movie/@Model.Movie.MainImg"
+                     alt="@Model.Movie.Title"
+                     class="img-fluid rounded shadow-sm"
+                     style="width: 100%; max-height: 420px; object-fit: cover;" />
+            }
+        </div>
+
+        <div class="col-12 col-md-7">
+            <h2 class="mb-2">@Model.Movie.Title</h2>
+
+            <div class="mb-3">
+                <span class="badge bg-primary">@(Model.Movie.Category?.Name ?? "Uncategorized")</span>
+                <span class="badge bg-secondary">@(Model.Movie.Cinema?.Name ?? "No cinema")</span>
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3">Price</dt>
+                <dd class="col-sm-9">@Model.Movie.Price.ToString("C")</dd>
+
+                <dt class="col-sm-3">Starts at</dt>
+                <dd class="col-sm-9">@Model.Movie.StartAt.ToString("f")</dd>
+
+                <dt class="col-sm-3">Cinema</dt>
+                <dd class="col-sm-9">@(Model.Movie.Cinema?.Name ?? "—")</dd>
+
+                <dt class="col-sm-3">Category</dt>
+                <dd class="col-sm-9">@(Model.Movie.Category?.Name ?? "—")</dd>
+            </dl>
+
+            @if (!string.IsNullOrEmpty(Model.Movie.Description))
+            {
+                <div class="mb-3">
+                    <h5>Description</h5>
+                    <p class="text-muted">@Model.Movie.Description</p>
+                </div>
+            }
+        </div>
+
+        <div class="col-12">
+            <h5>Actors</h5>
+            @if (Model.Actors is not null && Model.Actors.Any())
+            {
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+                    @foreach (var actor in Model.Actors)
+                    {
+                        <div class="col text-center">
+                            @if (!string.IsNullOrEmpty(actor.Img))
+                            {
+                                <img src="~/assets/images/actor/@actor.Img"
+                                     alt="@actor.FullName"
+                                     class="rounded-circle shadow-sm"
+                                     style="width: 70px; height: 70px; object-fit: cover;" />
+                            }
+                            <div class="small mt-1">@actor.FullName</div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No actors listed for this movie.</p>
+            }
+        </div>
+
+        <div class="col-12">
+            <h5>Gallery</h5>
+            @if (Model.Movie.MovieSubImgs is not null && Model.Movie.MovieSubImgs.Any())
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var sub in Model.Movie.MovieSubImgs)
+                    {
+                        <img src="~/assets/images/movieSubImage/@sub.Img"
+                             alt="Gallery image"
+                             class="rounded shadow-sm"
+                             style="width: 120px; height: 120px; object-fit: cover;" />
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No gallery images for this movie.</p>
+            }
+        </div>
+
+    </div>
+
+</div>
