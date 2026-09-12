@@ -1,20 +1,21 @@
 using System.Linq.Expressions;
+using week_26_27.Repositories.IRepositories;
 
 namespace week_26_27_task.Service;
 public class CategoryService : ICategoryService
 {
-    private IRepository<Category> _repository;
+    private IUnitOfWork _unitOfWork;
     private IPagination _pagination;
 
-    public CategoryService(IRepository<Category> repository, IPagination pagination)
+    public CategoryService(IUnitOfWork unitOfWork, IPagination pagination)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
         _pagination = pagination;
     }
 
     public CategoryWithFilterAndPaginationVM GetCategories(CategoryWithFilterAndPaginationVM categoriesIndex)
     {
-        var categories = _repository.Get();
+        var categories = _unitOfWork.categryRepository.Get();
 
         if (categoriesIndex.Search is not null)
         {
@@ -43,18 +44,18 @@ public class CategoryService : ICategoryService
 
     public async Task CreateCategory(Category category, CancellationToken ct)
     {
-        if (!await _repository.Add(entity: category, ct))
+        if (!await _unitOfWork.categryRepository.Add(entity: category, ct))
                 throw new Exception();
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.categryRepository.CommitAsync(ct);
     }
 
     public  async Task UpdateCategory(Category category, CancellationToken ct)
     {
-        if (!_repository.Update(category))
+        if (!_unitOfWork.categryRepository.Update(category))
             throw new Exception(); 
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.categryRepository.CommitAsync(ct);
     }
 
     public async Task DeleteCategory(int id, CancellationToken ct)
@@ -62,15 +63,15 @@ public class CategoryService : ICategoryService
         var category = GetCategory(id); 
 
 
-        if (!_repository.Delete(category))
+        if (!_unitOfWork.categryRepository.Delete(category))
             throw new Exception();
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.categryRepository.CommitAsync(ct);
     }
 
     public Category GetCategory(int id)
     {
-        var category = _repository.GetOne(exprission: e => e.Id == id, false);
+        var category = _unitOfWork.categryRepository.GetOne(exprission: e => e.Id == id, false);
 
         if (category is null)
             throw new Exception();
@@ -80,6 +81,6 @@ public class CategoryService : ICategoryService
     
     public IQueryable<Category> GetAllCategories(Expression<Func<Category,bool>> expression)
     {
-        return _repository.Get(expression);
+        return _unitOfWork.categryRepository.Get(expression);
     }
 }

@@ -1,25 +1,26 @@
 using System.Linq.Expressions;
+using week_26_27.Repositories.IRepositories;
 
 namespace week_26_27_task.Service;
 public class CinemaService : ICinemaService
 {
-    private IRepository<Cinema> _repository;
+    private IUnitOfWork _unitOfWork;
     private IPagination _pagination;
 
     private IFileHelper _fileHelper;
 
     private readonly string _imageFilePath = "assets\\images\\cinema";
 
-    public CinemaService(IRepository<Cinema> repository, IPagination pagination, IFileHelper fileHelper)
+    public CinemaService(IUnitOfWork unitOfWork, IPagination pagination, IFileHelper fileHelper)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
         _pagination = pagination;
         _fileHelper = fileHelper;
     }
 
     public CinemaWithFilterAndPaginationVM GetCinemas(CinemaWithFilterAndPaginationVM cinemasIndex)
     {
-        var cinemas = _repository.Get();
+        var cinemas = _unitOfWork.cinemaRepository.Get();
 
         if (cinemasIndex.Search is not null)
         {
@@ -53,9 +54,9 @@ public class CinemaService : ICinemaService
 
         cinema.Img = name;
 
-        await _repository.Add(entity: cinema);
+        await _unitOfWork.cinemaRepository.Add(entity: cinema);
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.cinemaRepository.CommitAsync(ct);
     }
 
     public async Task UpdateCinema(Cinema cinema, CancellationToken ct = default, IFormFile? image = null)
@@ -84,9 +85,9 @@ public class CinemaService : ICinemaService
             cinema.Img = dbCinema.Img;
         }
 
-        _repository.Update(cinema);
+        _unitOfWork.cinemaRepository.Update(cinema);
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.cinemaRepository.CommitAsync(ct);
     }
 
     public async Task DeleteCinema(int id, CancellationToken ct = default)
@@ -101,14 +102,14 @@ public class CinemaService : ICinemaService
                 _fileHelper.Delete(path);
         }
 
-        _repository.Delete(cinema);
+        _unitOfWork.cinemaRepository.Delete(cinema);
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.cinemaRepository.CommitAsync(ct);
     }
 
     public Cinema GetCinema(int id)
     {
-        var cinema = _repository.GetOne(exprission: e => e.Id == id, false);
+        var cinema = _unitOfWork.cinemaRepository.GetOne(exprission: e => e.Id == id, false);
 
         if (cinema is null)
             throw new Exception();
@@ -118,6 +119,6 @@ public class CinemaService : ICinemaService
 
     public IQueryable<Cinema> GetAllCinemas(Expression<Func<Cinema, bool>>? exprission = null)
     {
-        return _repository.Get(exprission);
+        return _unitOfWork.cinemaRepository.Get(exprission);
     }
 }

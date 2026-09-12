@@ -1,24 +1,25 @@
 using System.Linq.Expressions;
+using week_26_27.Repositories.IRepositories;
 
 namespace week_26_27_task.Service;
 public class ActorService : IActorService
 {
-    private IRepository<Actor> _repository;
+    private IUnitOfWork _unitOfWork;
     private IPagination _pagination;
 
     private IFileHelper _fileHelper;
 
     private readonly string _imageFilePath = "assets\\images\\actor";
-    public ActorService(IRepository<Actor> repository, IPagination pagination, IFileHelper fileHelper)
+    public ActorService(IUnitOfWork unitOfWork, IPagination pagination, IFileHelper fileHelper)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
         _pagination = pagination;
         _fileHelper = fileHelper;
     }
 
     public ActorWithFilterAndPaginationVM GetActors(ActorWithFilterAndPaginationVM actorsIndex)
     {
-        var actors = _repository.Get();
+        var actors = _unitOfWork.actorRepository.Get();
 
         if (actorsIndex.Search is not null)
         {
@@ -53,10 +54,10 @@ public class ActorService : IActorService
 
         actor.Img = name;
 
-        await _repository.Add(entity: actor);
+        await _unitOfWork.actorRepository.Add(entity: actor);
 
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.actorRepository.CommitAsync(ct);
     }
 
     public async Task UpdateActor(Actor actor, CancellationToken ct = default, IFormFile? image = null)
@@ -85,9 +86,9 @@ public class ActorService : IActorService
             actor.Img = dbActor.Img;
         }
 
-        _repository.Update(actor);
+        _unitOfWork.actorRepository.Update(actor);
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.actorRepository.CommitAsync(ct);
     }
 
     public async Task DeleteActor(int id, CancellationToken ct = default)
@@ -102,14 +103,14 @@ public class ActorService : IActorService
                 _fileHelper.Delete(path);
         }
 
-        _repository.Delete(actor);
+        _unitOfWork.actorRepository.Delete(actor);
 
-        await _repository.CommitAsync(ct);
+        await _unitOfWork.actorRepository.CommitAsync(ct);
     }
 
     public Actor GetActor(int id)
     {
-        var actor = _repository.GetOne(exprission: e => e.Id == id, false);
+        var actor = _unitOfWork.actorRepository.GetOne(exprission: e => e.Id == id, false);
 
         if (actor is null)
             throw new Exception();
@@ -119,6 +120,6 @@ public class ActorService : IActorService
     
     public IQueryable<Actor> GetAllActors(Expression<Func<Actor, bool>>? exprission = null)
     {
-        return _repository.Get(exprission);
+        return _unitOfWork.actorRepository.Get(exprission);
     }
 }

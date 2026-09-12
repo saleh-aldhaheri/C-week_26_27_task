@@ -1,0 +1,13 @@
+﻿using week_26_27_task.Data.ApplicationDbContext;
+
+namespace week_26_27.Repositories.IRepositories;
+public interface IUnitOfWork : IDisposable
+{
+    IRepository<Category> categryRepository { get; }
+    IRepository<Cinema> cinemaRepository { get; }
+    IRepository<Movie> movieRepository { get; }
+    IRepository<Actor> actorRepository { get; }
+    IBulkRepository<MovieSubImg> movieSubImgRepository { get; }
+    IBulkRepository<MovieActor> movieActorRespository { get; }
+    ApplicationDbContext dbContext { get; }
+}

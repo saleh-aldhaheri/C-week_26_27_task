@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using week_26_27.Repositories.IRepositories;
 
 namespace week_26_27_task.Service;
 
@@ -6,48 +6,33 @@ public class MovieService : IMovieService
 {
     private readonly IFileHelper _fileHelper;
     private readonly IPagination _pagination;
-    private readonly IRepository<Movie> _movieRepository;
-    private readonly IRepository<Category> _categoryRepository;
-    private readonly IRepository<Cinema> _cinemaRepository;
-    private readonly IRepository<Actor> _actorRepository;
-    private readonly IBulkRepository<MovieSubImg> _movieSubImgBulkRepository;
-    private readonly IBulkRepository<MovieActor> _movieActorBulkRespository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly string _imageFilePath = "assets\\images\\movie";
     private readonly string _subImageFilePath = "assets\\images\\movieSubImage";
 
     public MovieService(
         IFileHelper fileHelper,
         IPagination pagination,
-        IRepository<Movie> movieRepository,
-        IRepository<Category> categoryRepository,
-        IRepository<Cinema> cinemaRepository,
-        IRepository<Actor> actorRepositry,
-        IBulkRepository<MovieActor> movieActorBulkRespository,
-        IBulkRepository<MovieSubImg> movieSubImgBulkRepository
+        IUnitOfWork unitOfWork
     )
     {
         _fileHelper = fileHelper;
         _pagination = pagination;
-        _movieRepository = movieRepository;
-        _categoryRepository = categoryRepository;
-        _cinemaRepository = cinemaRepository;
-        _actorRepository = actorRepositry;
-        _movieActorBulkRespository = movieActorBulkRespository;
-        _movieSubImgBulkRepository = movieSubImgBulkRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public MovieWithFilterAndPaginationVM GetMovies(MovieWithFilterAndPaginationVM moviesIndex)
     {
-        var movies = _movieRepository.Get(null,true, [e => e.Category,
+        var movies = _unitOfWork.movieRepository.Get(null,true, [e => e.Category,
                 e => e.Cinema]);
 
-        var categories = _categoryRepository.Get().Where(e => e.Status == true).Select(e => new Category
+        var categories = _unitOfWork.categryRepository.Get().Where(e => e.Status == true).Select(e => new Category
         {
             Id = e.Id,
             Name = e.Name
         });
 
-        var cinemas = _cinemaRepository.Get().Select(e => new Cinema
+        var cinemas = _unitOfWork.cinemaRepository.Get().Select(e => new Cinema
         {
             Id = e.Id,
             Name = e.Name
@@ -99,8 +84,8 @@ public class MovieService : IMovieService
 
         movie.MainImg = name;
 
-        await _movieRepository.Add(movie);
-        await _movieRepository.CommitAsync();
+        await _unitOfWork.movieRepository.Add(movie);
+        await _unitOfWork.movieRepository.CommitAsync();
 
         if (images is not null && images.Any())
         {
@@ -139,7 +124,7 @@ public class MovieService : IMovieService
             movie.MainImg = DbMovie.MainImg; 
         }
 
-        _movieRepository.Update(movie);
+        _unitOfWork.movieRepository.Update(movie);
 
         if(images is not null && images.Any())
         {
@@ -170,26 +155,26 @@ public class MovieService : IMovieService
 
         await deleteMovieActors(id, ct);
 
-        _movieRepository.Delete(movie);
-        await _movieRepository.CommitAsync(ct);
+        _unitOfWork.movieRepository.Delete(movie);
+        await _unitOfWork.movieRepository.CommitAsync(ct);
     }
 
 
     public (IQueryable<Cinema>, IQueryable<Category>, IQueryable<Actor>) GetDropDowns()
     {
-        var cinemas = _cinemaRepository.Get().Select(e => new Cinema
+        var cinemas = _unitOfWork.cinemaRepository.Get().Select(e => new Cinema
         {
             Id = e.Id,
             Name = e.Name
         });
 
-        var categories = _categoryRepository.Get(e => e.Status == true).Select(e => new Category
+        var categories = _unitOfWork.categryRepository.Get(e => e.Status == true).Select(e => new Category
         {
             Id = e.Id,
             Name = e.Name,
         });
 
-        var actors = _actorRepository.Get().Select(e => new Actor
+        var actors = _unitOfWork.actorRepository.Get().Select(e => new Actor
         {
             Id = e.Id,
             FullName = e.FullName,
@@ -202,7 +187,7 @@ public class MovieService : IMovieService
     //helper methods 
     public Movie GetMovie(int id)
     {
-        Movie? movie = _movieRepository.GetOne(
+        Movie? movie = _unitOfWork.movieRepository.GetOne(
             e => e.Id == id, 
             false,
             relations: [
@@ -229,7 +214,7 @@ public class MovieService : IMovieService
             {
                 _fileHelper.Upload(imgPath, img);
 
-                await _movieSubImgBulkRepository.Add(new()
+                await _unitOfWork.movieSubImgRepository.Add(new()
                 {
                     MovieId = movieId,
                     Img = imgName
@@ -238,26 +223,26 @@ public class MovieService : IMovieService
             }
         }
 
-        await _movieSubImgBulkRepository.CommitAsync();
+        await _unitOfWork.movieSubImgRepository.CommitAsync();
     }
 
     private async Task CreateMoiveActors(int movieId, List<int> actorsIds, CancellationToken ct)
     {
         foreach (var id in actorsIds)
         {
-            await _movieActorBulkRespository.Add(new()
+            await _unitOfWork.movieActorRespository.Add(new()
             {
                 MovieId = movieId,
                 ActorId = id
             });
         }
 
-        await _movieActorBulkRespository.CommitAsync();
+        await _unitOfWork.movieActorRespository.CommitAsync();
     }
 
     private async Task deleteSubImages(int moiveId, CancellationToken ct)
     {
-        var subImages = _movieSubImgBulkRepository.Get(e => e.MovieId == moiveId);
+        var subImages = _unitOfWork.movieSubImgRepository.Get(e => e.MovieId == moiveId);
 
         foreach (var subImage in subImages)
         {
@@ -268,17 +253,17 @@ public class MovieService : IMovieService
             }
         }
 
-        _movieSubImgBulkRepository.DeleteRange(subImages);
+        _unitOfWork.movieSubImgRepository.DeleteRange(subImages);
 
-        await _movieActorBulkRespository.CommitAsync(ct);
+        await _unitOfWork.movieActorRespository.CommitAsync(ct);
 
     }
 
     private async Task deleteMovieActors(int movieId, CancellationToken ct)
     {
-        var movieActors = _movieActorBulkRespository.Get(e => e.MovieId == movieId);
-        _movieActorBulkRespository.DeleteRange(movieActors);
+        var movieActors = _unitOfWork.movieActorRespository.Get(e => e.MovieId == movieId);
+        _unitOfWork.movieActorRespository.DeleteRange(movieActors);
 
-        await _movieActorBulkRespository.CommitAsync();
+        await _unitOfWork.movieActorRespository.CommitAsync();
     }
 }

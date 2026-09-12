@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using week_26_27_task.Data.ApplicationDbContext;
-using week_26_27_task.Repositories.IRepositories;
 
 namespace week_26_27_task.Repositories;
 public class Repository<T> : IRepository<T> where T : class

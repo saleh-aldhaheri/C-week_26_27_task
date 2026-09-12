@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using week_26_27.Repositories;
+using week_26_27.Repositories.IRepositories;
 using week_26_27_task.Data.ApplicationDbContext;
 using week_26_27_task.Services;
 
@@ -21,6 +22,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IRepository<Movie>, Repository<Movie>>();
             builder.Services.AddScoped<IBulkRepository<MovieActor>, BulkRepository<MovieActor>>();
             builder.Services.AddScoped<IBulkRepository<MovieSubImg>, BulkRepository<MovieSubImg>>();
+            builder.Services.AddScoped<IUnitOfWork, UniteOfWork>();
 
             //services 
             builder.Services.AddScoped<ICategoryService, CategoryService>();
