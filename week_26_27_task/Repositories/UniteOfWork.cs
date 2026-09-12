@@ -25,7 +25,7 @@ namespace week_26_27.Repositories
         }
 
         public IRepository<Category> categryRepository { get; }
-
+        
         public IRepository<Cinema> cinemaRepository { get; }
 
         public IRepository<Movie> movieRepository { get; }
