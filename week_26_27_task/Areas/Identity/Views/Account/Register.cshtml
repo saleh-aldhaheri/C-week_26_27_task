@@ -1,0 +1,60 @@
+@model week_26_27.ViewModels.RegisterVM
+
+<h4>Register</h4>
+
+<form asp-action="Register" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span class="text-danger" asp-validation-for="FirstName"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span class="text-danger" asp-validation-for="LastName"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UserName" class="form-label"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span class="text-danger" asp-validation-for="UserName"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span class="text-danger" asp-validation-for="PhoneNumber"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span class="text-danger" asp-validation-for="Email"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" class="form-control" />
+        <span class="text-danger" asp-validation-for="Password"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ConfirmationPassword" class="form-label"></label>
+        <input asp-for="ConfirmationPassword" class="form-control" />
+        <span class="text-danger" asp-validation-for="ConfirmationPassword"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+    <a asp-action="Login" class="btn btn-link">Already have an account?</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Notification { 
+    <partial name="_ConfirmationDialogPartial"/>
+}

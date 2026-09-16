@@ -1,0 +1,38 @@
+@model week_26_27.ViewModels.LoginVM
+
+<h4>Login</h4>
+
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="EmailOrUsername" class="form-label"></label>
+        <input asp-for="EmailOrUsername" class="form-control" />
+        <span class="text-danger" asp-validation-for="EmailOrUsername"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span class="text-danger" asp-validation-for="Password"></span>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input asp-for="RememberMe" class="form-check-input" />
+        <label asp-for="RememberMe" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    <a asp-action="Register" class="btn btn-link">Create an account</a>
+    <a asp-action="ForgetPassword" class="btn btn-link">Forgot your password?</a>
+    <a asp-action="ResendEmailConfirmation" class="btn btn-link">Confrim Your Email</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Notification {
+    <partial name="_NotificationPartial" />
+}
+

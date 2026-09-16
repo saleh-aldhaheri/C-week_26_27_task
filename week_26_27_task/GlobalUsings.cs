@@ -1,10 +1,10 @@
 global using week_26_27_task.Data;
 global using week_26_27_task.Models;
+global using week_26_27_task.ViewModels;
 global using week_26_27_task.Repositories;
 global using week_26_27_task.Repositories.IRepositories;
 global using week_26_27_task.Validations;
 global using week_26_27_task.Utilities;
-global using week_26_27_task.ViewModels;
 global using week_26_27_task.Service;
 global using week_26_27_task.Service.IService;
 global using week_26_27_task.Helpers;

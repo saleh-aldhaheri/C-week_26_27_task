@@ -1,9 +1,11 @@
 
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using week_26_27.Models;
 
 namespace week_26_27_task.Data.ApplicationDbContext
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         DbSet<Actor> Actors { get; set; } = null!;
         DbSet<Movie> Movies { get; set; } = null!;
@@ -11,13 +13,22 @@ namespace week_26_27_task.Data.ApplicationDbContext
         DbSet<Cinema> Cinemas { get; set; } = null!;
         DbSet<Category> Categories { get; set; } = null!;
         DbSet<MovieSubImg> MovieSubImgs { get; set; } = null!;
-
+        DbSet<ApplicationUserOtp> ApplicationUserOtps { get; set; } = null!;
+        
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasIndex(e => e.Email)
+                .IsUnique();
+            
+            modelBuilder.Entity<ApplicationUser>()
+                .HasIndex(e => e.UserName)
+                .IsUnique();
 
             modelBuilder.Entity<Movie>()
                 .Property(e => e.Title)

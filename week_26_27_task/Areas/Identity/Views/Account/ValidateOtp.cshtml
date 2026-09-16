@@ -1,0 +1,24 @@
+@model week_26_27.ViewModels.ValidateOtpVM
+
+<h4>Validate OTP</h4>
+
+<form asp-action="ValidateOtp" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Otp" class="form-label"></label>
+        <input asp-for="Otp" class="form-control" />
+        <span class="text-danger" asp-validation-for="Otp"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Validate</button>
+    <a asp-action="Login" class="btn btn-link">Back to Login</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Notification {
+    <partial name="_NotificationPartial" />
+}
