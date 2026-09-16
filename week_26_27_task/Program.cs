@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using week_26_27.Helpers;
+using week_26_27.Helpers.IHelpers;
 using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
@@ -37,16 +39,17 @@ namespace week_26_27_task
             builder.Services.AddScoped<IMovieService, MovieService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddScoped<IAccountService<ApplicationUser>, AccountService<ApplicationUser>>();
-            
+
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
-            builder.Services.AddScoped<IPagination, Pagination>(); 
+            builder.Services.AddScoped<IPagination, Pagination>();
+            builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
             builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
             {
                 optionsBuilder.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
             });
-            
+
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredUniqueChars = 0;
@@ -79,10 +82,16 @@ namespace week_26_27_task
             app.UseAuthorization();
 
             app.MapStaticAssets();
-                app.MapControllerRoute(
-                   name: "default",
-                   pattern: "{Area=Admin}/{controller=Home}/{action=Index}/{id?}")
-                   .WithStaticAssets();
+            app.MapControllerRoute(
+               name: "default",
+               pattern: "{Area=Admin}/{controller=Home}/{action=Index}/{id?}")
+               .WithStaticAssets();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+                dbInitializer.Initialize();
+            }
 
             app.Run();
         }
