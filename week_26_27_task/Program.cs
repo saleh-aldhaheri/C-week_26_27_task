@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
 using week_26_27_task.Data.ApplicationDbContext;
@@ -22,6 +24,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IRepository<Movie>, Repository<Movie>>();
             builder.Services.AddScoped<IBulkRepository<MovieActor>, BulkRepository<MovieActor>>();
             builder.Services.AddScoped<IBulkRepository<MovieSubImg>, BulkRepository<MovieSubImg>>();
+            builder.Services.AddScoped<IRepository<ApplicationUserOtp>, Repository<ApplicationUserOtp>>();
             builder.Services.AddScoped<IUnitOfWork, UniteOfWork>();
 
             //services 
@@ -39,6 +42,16 @@ namespace week_26_27_task
             {
                 optionsBuilder.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
             });
+
+
+            //Identity 
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                //user
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
             var app = builder.Build();
 
