@@ -71,7 +71,7 @@ namespace week_26_27_task
             app.MapStaticAssets();
                 app.MapControllerRoute(
                    name: "default",
-                   pattern: "{Area=Admin}/{controller=Home}/{action=Index}/{id?}")
+                   pattern: "{Area=Identity}/{controller=Account}/{action=Login}/{id?}")
                    .WithStaticAssets();
 
             app.Run();
