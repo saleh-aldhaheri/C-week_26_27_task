@@ -11,4 +11,6 @@ public class LoginVM
 
     [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
+    
+    public bool RemeberMe { get; set; } = false;
 }

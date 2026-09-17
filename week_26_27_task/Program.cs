@@ -50,8 +50,20 @@ namespace week_26_27_task
             //Identity 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
+                //password
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredUniqueChars = 0;
+                
                 //user
                 options.User.RequireUniqueEmail = true;
+
+                //ratelimiting 
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+
+                //Sign In
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using week_26_27.Models;
 using week_26_27.ViewModels;
 
@@ -13,10 +14,17 @@ public class AccountController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEmailSender _emailSender; 
 
-    public AccountController(UserManager<ApplicationUser> userManager, IEmailSender emailSender)
+    private readonly SignInManager<ApplicationUser> _signInManager;
+
+    public AccountController(
+        UserManager<ApplicationUser> userManager,
+        IEmailSender emailSender,
+        SignInManager<ApplicationUser> signInManager
+    )
     {
         _userManager = userManager;
         _emailSender = emailSender;
+        _signInManager = signInManager;
     }
 
     [HttpGet]
@@ -122,5 +130,50 @@ public class AccountController : Controller
     public IActionResult Login()
     {
         return View();
+    }
+
+    public async Task<IActionResult> Login(LoginVM loginVm)
+    {
+        if (!ModelState.IsValid)
+            return View(nameof(Login));
+
+        var user = await _userManager.FindByEmailAsync(loginVm.EmailOrUserName) ??
+                    await _userManager.FindByNameAsync(loginVm.EmailOrUserName);
+
+        if(user is null)
+        {
+            ModelState.AddModelError(nameof(loginVm.EmailOrUserName), "Incorrect Email Or UserName");
+            ModelState.AddModelError(nameof(loginVm.Password), "Incorrect Password");
+            return View(loginVm);
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(user, loginVm.Password, loginVm.RemeberMe, true);
+
+        if(result.IsLockedOut)
+        {
+            TempData[NotificationConstants.ERROR_NOTIFICATION] = "To Many Attempts Please Try Again Later";
+            return View(loginVm);
+        }
+
+        if(result.IsNotAllowed)
+        {
+            TempData[NotificationConstants.ERROR_NOTIFICATION] = "Please Confirm Your Email";
+            return View(loginVm);
+        }
+
+        if(!result.Succeeded)
+        {
+            ModelState.AddModelError(nameof(LoginVM.EmailOrUserName), "Invalid User Name or Email");
+            ModelState.AddModelError(nameof(LoginVM.Password), "Invalid Password");
+
+            return View(loginVm);
+        }
+
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = $"Welcome {user.FirstName} {user.LastName} To Your Account";
+
+        return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new
+        {
+            area = AreaConstants.ADMIN_AREA
+        });
     }
 }
