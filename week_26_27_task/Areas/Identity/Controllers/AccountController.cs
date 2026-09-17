@@ -176,4 +176,12 @@ public class AccountController : Controller
             area = AreaConstants.ADMIN_AREA
         });
     }
+
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Logut Succesfully";
+
+        return View(nameof(Login));
+    }
 }
