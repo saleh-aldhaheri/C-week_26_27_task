@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
+using week_26_27.Service;
 using week_26_27_task.Data.ApplicationDbContext;
 using week_26_27_task.Services;
 
@@ -33,6 +35,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IActorService, ActorService>();
             builder.Services.AddScoped<IMovieService, MovieService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
