@@ -1,110 +1,112 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using week_26_27.Utilities;
 
-namespace week_26_27_task.Areas.Admin.Controllers
+namespace week_26_27_task.Areas.Admin.Controllers;
+
+[Area("Admin")]
+[Authorize(Roles = $"{RoleConstants.ADMIN},{RoleConstants.SUPER_ADMIN}")]
+public class ActorController : Controller
 {
-    [Area("Admin")]
-    public class ActorController : Controller
+    private IActorService _actorService;
+
+    public ActorController(IActorService actorService)
     {
-        private IActorService _actorService;
+        _actorService = actorService;
+    }
 
-        public ActorController(IActorService actorService)
+    public IActionResult Index(ActorWithFilterAndPaginationVM actorsIndex)
+    {
+        var actors = _actorService.GetActors(actorsIndex);
+        return View(model: actors);
+    }
+
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(ActorWithImageVm actorWithImage, CancellationToken ct = default)
+    {
+        if (actorWithImage.Image is null || !ModelState.IsValid)
+            return View(model: actorWithImage);
+
+        try
         {
-            _actorService = actorService;
+            await _actorService.CreateActor(actorWithImage.Actor, actorWithImage.Image, ct);
+
+        }
+        catch (Exception)
+        {
+            return BadRequest();
         }
 
-        public IActionResult Index(ActorWithFilterAndPaginationVM actorsIndex)
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Actor created successfully!";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public IActionResult Update([FromRoute] int id)
+    {
+        Actor? actor = null;
+
+        try
         {
-            var actors = _actorService.GetActors(actorsIndex);
-            return View(model: actors);
+            actor = _actorService.GetActor(id);
+        }
+        catch (Exception)
+        {
+            return NotFound();
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        return View(model: new ActorWithImageVm()
         {
-            return View();
+            Actor = actor
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Update(int id, ActorWithImageVm actorWithImage, CancellationToken ct = default)
+    {
+        actorWithImage.Actor.Id = id;
+
+        if (!ModelState.IsValid)
+            return View(actorWithImage);
+
+        try
+        {
+            await _actorService.UpdateActor(actorWithImage.Actor, ct, actorWithImage.Image);
+
+        }
+        catch (Exception)
+        {
+            return BadRequest();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ActorWithImageVm actorWithImage, CancellationToken ct = default)
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Actor updated successfully!";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct = default)
+    {
+        try
         {
-            if (actorWithImage.Image is null || !ModelState.IsValid)
-                return View(model: actorWithImage);
+            await _actorService.DeleteActor(id, ct);
 
-            try
-            {
-                await _actorService.CreateActor(actorWithImage.Actor, actorWithImage.Image, ct);
-
-            }
-            catch (Exception)
-            {
-                return BadRequest();
-            }
-
-            TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Actor created successfully!";
-
-            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            BadRequest();
         }
 
-        [HttpGet]
-        public IActionResult Update([FromRoute] int id)
-        {
-            Actor? actor = null;
+        TempData[key: NotificationConstants.SUCCESS_NOTIFICATION] = "Actor deleted successfully!";
 
-            try
-            {
-                actor = _actorService.GetActor(id);
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
-
-            return View(model: new ActorWithImageVm()
-            {
-                Actor = actor
-            });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(int id, ActorWithImageVm actorWithImage, CancellationToken ct = default)
-        {
-            actorWithImage.Actor.Id = id;
-
-            if (!ModelState.IsValid)
-                return View(actorWithImage);
-
-            try
-            {
-                await _actorService.UpdateActor(actorWithImage.Actor, ct, actorWithImage.Image);
-
-            }
-            catch (Exception)
-            {
-                return BadRequest();
-            }
-
-            TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Actor updated successfully!";
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct = default)
-        {
-            try
-            {
-                await _actorService.DeleteActor(id, ct);
-
-            }
-            catch (Exception)
-            {
-                BadRequest();
-            }
-
-            TempData[key: NotificationConstants.SUCCESS_NOTIFICATION] = "Actor deleted successfully!";
-
-            return RedirectToAction(nameof(Index));
-        }
+        return RedirectToAction(nameof(Index));
     }
 }

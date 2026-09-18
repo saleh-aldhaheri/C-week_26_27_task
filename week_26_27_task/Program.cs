@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using week_26_27.Helpers;
+using week_26_27.Helpers.IHelpers;
 using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
@@ -39,7 +41,9 @@ namespace week_26_27_task
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
-            builder.Services.AddScoped<IPagination, Pagination>(); 
+            builder.Services.AddScoped<IPagination, Pagination>();
+            builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+            builder.Services.AddScoped<IGuestGuard, GuestGuard>();
 
             builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
             {
@@ -68,6 +72,13 @@ namespace week_26_27_task
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+
+            builder.Services.ConfigureApplicationCookie(option =>
+            {
+                option.LoginPath = "/identity/account/login";
+                option.AccessDeniedPath = "/identity/account/AccessDenied";
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -88,6 +99,12 @@ namespace week_26_27_task
                    name: "default",
                    pattern: "{Area=Identity}/{controller=Account}/{action=Login}/{id?}")
                    .WithStaticAssets();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+                dbInitializer.Initialize();
+            }
 
             app.Run();
         }
