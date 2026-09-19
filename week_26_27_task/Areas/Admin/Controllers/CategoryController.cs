@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using week_26_27.Utilities;
 
 namespace week_26_27_task.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = $"{RoleConstants.ADMIN},{RoleConstants.SUPER_ADMIN}")]
 public class CategoryController : Controller
 {
     ICategoryService _categoryService;

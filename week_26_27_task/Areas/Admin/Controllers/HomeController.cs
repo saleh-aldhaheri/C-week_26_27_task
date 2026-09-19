@@ -1,36 +1,37 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using week_26_27_task.Models;
+using week_26_27.Utilities;
 using week_26_27_task.Services;
 
-namespace week_26_27_task.Areas.Admin.Controllers
+namespace week_26_27_task.Areas.Admin.Controllers;
+
+[Area("Admin")]
+[Authorize(Roles = $"{RoleConstants.ADMIN},{RoleConstants.SUPER_ADMIN}")]
+public class HomeController : Controller
 {
-    [Area("Admin")]
-    public class HomeController : Controller
+    private readonly IDashboardService _dashboardService;
+
+    public HomeController(IDashboardService dashboardService)
     {
-        private readonly IDashboardService _dashboardService;
+        _dashboardService = dashboardService;
+    }
 
-        public HomeController(IDashboardService dashboardService)
-        {
-            _dashboardService = dashboardService;
-        }
+    [HttpGet]
+    public IActionResult Index()
+    {
+        var vm =  _dashboardService.GetDashboard();
+        return View(vm);
+    }
 
-        [HttpGet]
-        public IActionResult Index()
-        {
-            var vm =  _dashboardService.GetDashboard();
-            return View(vm);
-        }
+    public IActionResult Privacy()
+    {
+        return View();
+    }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

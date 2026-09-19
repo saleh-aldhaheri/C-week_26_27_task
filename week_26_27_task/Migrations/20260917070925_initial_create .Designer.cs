@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using week_26_27_task.Data.ApplicationDbContext;
 
@@ -11,9 +12,11 @@ using week_26_27_task.Data.ApplicationDbContext;
 namespace week_26_27.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917070925_initial_create ")]
+    partial class initial_create
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,9 +254,6 @@ namespace week_26_27.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("ExpiredAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsUsed")
                         .HasColumnType("bit");
 
@@ -268,7 +268,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("ApplicationUserOtps", (string)null);
+                    b.ToTable("ApplicationUserOtps");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Actor", b =>
@@ -296,7 +296,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("FullName");
 
-                    b.ToTable("Actors", (string)null);
+                    b.ToTable("Actors");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Category", b =>
@@ -324,7 +324,7 @@ namespace week_26_27.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Cinema", b =>
@@ -353,7 +353,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Cinemas", (string)null);
+                    b.ToTable("Cinemas");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Movie", b =>
@@ -399,7 +399,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("Movies", (string)null);
+                    b.ToTable("Movies");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.MovieActor", b =>
@@ -423,7 +423,7 @@ namespace week_26_27.Migrations
                     b.HasIndex("MovieId", "ActorId")
                         .IsUnique();
 
-                    b.ToTable("MovieActors", (string)null);
+                    b.ToTable("MovieActors");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.MovieSubImg", b =>
@@ -445,7 +445,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("MovieSubImgs", (string)null);
+                    b.ToTable("MovieSubImgs");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

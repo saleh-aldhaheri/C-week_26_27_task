@@ -27,6 +27,7 @@ namespace week_26_27_task.Models
 
         public int CinemaId { get; set; }
         public Cinema? Cinema { get; set; }
+        
         public ICollection<MovieSubImg> MovieSubImgs { get; set; } = new List<MovieSubImg>();
         public ICollection<MovieActor> MovieActors { get; set; } = new List<MovieActor>();
     }

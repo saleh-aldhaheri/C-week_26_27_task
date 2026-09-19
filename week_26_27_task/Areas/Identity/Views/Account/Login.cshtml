@@ -1,0 +1,35 @@
+@model week_26_27.ViewModels.LoginVM
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="EmailOrUserName" class="form-label"></label>
+        <input asp-for="EmailOrUserName" class="form-control" />
+        <span asp-validation-for="EmailOrUserName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    <a asp-action="Register" class="btn btn-link">Don't have an account?</a>
+    <a asp-action="ForgetPassword" class="btn btn-link">Forget Password? </a>
+    <a asp-action="SendEmailConfirmation" class="btn btn-link">Resend confirmation email</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Notifications { 
+    <partial name="_NotificationPartial"/>
+}

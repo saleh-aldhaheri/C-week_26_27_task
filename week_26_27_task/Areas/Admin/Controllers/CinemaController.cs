@@ -1,108 +1,110 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using week_26_27.Utilities;
 
-namespace week_26_27_task.Areas.Admin.Controllers
+namespace week_26_27_task.Areas.Admin.Controllers;
+
+[Area("Admin")]
+[Authorize(Roles = $"{RoleConstants.ADMIN},{RoleConstants.SUPER_ADMIN}")]
+public class CinemaController : Controller
 {
-    [Area("Admin")]
-    public class CinemaController : Controller
+    private ICinemaService _cinemaService;
+
+    public CinemaController(ICinemaService cinemaService)
     {
-        private ICinemaService _cinemaService;
+        _cinemaService = cinemaService;
+    }
+    
+    public IActionResult Index(CinemaWithFilterAndPaginationVM cinemasIndex)
+    {
+        var cinemas = _cinemaService.GetCinemas(cinemasIndex);
+        return View(model: cinemas);
+    }
 
-        public CinemaController(ICinemaService cinemaService)
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
+    {
+        if(cinemaWithImage.Image is null || !ModelState.IsValid) 
+             return View(model: cinemaWithImage);
+
+        try
         {
-            _cinemaService = cinemaService;
-        }
+           await _cinemaService.CreateCinema(cinemaWithImage.Cinema, cinemaWithImage.Image, ct);
         
-        public IActionResult Index(CinemaWithFilterAndPaginationVM cinemasIndex)
+        }catch(Exception)
         {
-            var cinemas = _cinemaService.GetCinemas(cinemasIndex);
-            return View(model: cinemas);
+            return BadRequest(); 
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema created successfully!";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public IActionResult Update([FromRoute] int id)
+    {
+        Cinema? cinema = null;
+
+        try
         {
-            return View();
+            cinema = _cinemaService.GetCinema(id);
+        }
+        catch (Exception)
+        {
+            return NotFound();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
+
+        return View(model: new CinemaWithImageVm()
         {
-            if(cinemaWithImage.Image is null || !ModelState.IsValid) 
-                 return View(model: cinemaWithImage);
+            Cinema = cinema
+        });
+    }
 
-            try
-            {
-               await _cinemaService.CreateCinema(cinemaWithImage.Cinema, cinemaWithImage.Image, ct);
-            
-            }catch(Exception)
-            {
-                return BadRequest(); 
-            }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Update([FromRoute]int Id, CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
+    {
+        cinemaWithImage.Cinema.Id = Id; 
 
-            TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema created successfully!";
+        if (!ModelState.IsValid)
+            return View(cinemaWithImage);
 
-            return RedirectToAction(nameof(Index));
+        try
+        {
+           await _cinemaService.UpdateCinema(cinemaWithImage.Cinema,  ct, cinemaWithImage.Image);
+
+        }catch(Exception)
+        {
+            return BadRequest();
         }
 
-        [HttpGet]
-        public IActionResult Update([FromRoute] int id)
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema updated successfully!";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Delete([FromRoute]int id, CancellationToken ct = default)
+    {
+        try
         {
-            Cinema? cinema = null;
+            await _cinemaService.DeleteCinema(id, ct);
 
-            try
-            {
-                cinema = _cinemaService.GetCinema(id);
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
-
-
-            return View(model: new CinemaWithImageVm()
-            {
-                Cinema = cinema
-            });
+        }catch(Exception)
+        {
+           BadRequest();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update([FromRoute]int Id, CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
-        {
-            cinemaWithImage.Cinema.Id = Id; 
+        TempData[key: NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema deleted successfully!";
 
-            if (!ModelState.IsValid)
-                return View(cinemaWithImage);
-
-            try
-            {
-               await _cinemaService.UpdateCinema(cinemaWithImage.Cinema,  ct, cinemaWithImage.Image);
-
-            }catch(Exception)
-            {
-                return BadRequest();
-            }
-
-            TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema updated successfully!";
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Delete([FromRoute]int id, CancellationToken ct = default)
-        {
-            try
-            {
-                await _cinemaService.DeleteCinema(id, ct);
-
-            }catch(Exception)
-            {
-               BadRequest();
-            }
-
-            TempData[key: NotificationConstants.SUCCESS_NOTIFICATION] = "Cinema deleted successfully!";
-
-            return RedirectToAction(nameof(Index));
-        }
+        return RedirectToAction(nameof(Index));
     }
 }

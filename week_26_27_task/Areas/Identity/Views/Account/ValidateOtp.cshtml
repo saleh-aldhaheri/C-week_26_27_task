@@ -1,0 +1,27 @@
+@model week_26_27.ViewModels.ValidateOtpVM
+@{
+    ViewData["Title"] = "Validate Otp";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="ValidateOtp" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Otp" class="form-label"></label>
+        <input asp-for="Otp" class="form-control" maxlength="6" />
+        <span asp-validation-for="Otp" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Validate</button>
+    <a asp-action="Login" class="btn btn-link">Back to Login</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Notifications { 
+    <partial name="_NotificationPartial" />
+}
