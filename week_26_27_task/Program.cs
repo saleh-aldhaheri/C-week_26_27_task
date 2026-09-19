@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using week_26_27.Helpers;
 using week_26_27.Helpers.IHelpers;
+using week_26_27.Middlewares;
 using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
@@ -43,8 +44,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
             builder.Services.AddScoped<IPagination, Pagination>();
             builder.Services.AddScoped<IDbInitializer, DbInitializer>();
-            builder.Services.AddScoped<IGuestGuard, GuestGuard>();
-
+            
             builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
             {
                 optionsBuilder.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
@@ -57,7 +57,7 @@ namespace week_26_27_task
                 //password
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredUniqueChars = 0;
-                
+
                 //user
                 options.User.RequireUniqueEmail = true;
 
@@ -94,11 +94,28 @@ namespace week_26_27_task
 
             app.UseAuthorization();
 
+            app.MapWhen(
+            context =>
+                context.Request.Path.StartsWithSegments("/Identity/Account/Login") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/Register") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/SendEmailConfirmation") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/EmailConfirmation") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/ForgetPassword") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/ValidateOtp") ||
+                context.Request.Path.StartsWithSegments("/Identity/Account/NewPassword") ||
+                context.Request.Path.StartsWithSegments("/")
+            ,
+            branch =>
+            {
+                branch.UseMiddleware<GuestMiddleware>();
+            });
+
             app.MapStaticAssets();
-                app.MapControllerRoute(
-                   name: "default",
-                   pattern: "{Area=Identity}/{controller=Account}/{action=Login}/{id?}")
-                   .WithStaticAssets();
+            
+            app.MapControllerRoute(
+               name: "default",
+               pattern: "{Area=Identity}/{controller=Account}/{action=Login}/{id?}")
+               .WithStaticAssets();
 
             using (var scope = app.Services.CreateScope())
             {

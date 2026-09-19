@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using week_26_27.Models;
 using week_26_27.ViewModels;
-using week_26_27.Helpers.IHelpers;
 using week_26_27.Utilities;
 
 namespace week_26_27.Areas.Identity.Controllers;
@@ -16,28 +15,23 @@ public class AccountController : Controller
     private readonly IEmailSender _emailSender;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IRepository<ApplicationUserOtp> _applicationUserOtp;
-    private readonly IGuestGuard _guestGuard;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         IEmailSender emailSender,
         SignInManager<ApplicationUser> signInManager,
-        IRepository<ApplicationUserOtp> applicationUserOtp,
-        IGuestGuard guestGuard
+        IRepository<ApplicationUserOtp> applicationUserOtp
     )
     {
         _userManager = userManager;
         _emailSender = emailSender;
         _signInManager = signInManager;
         _applicationUserOtp = applicationUserOtp;
-        _guestGuard = guestGuard;
     }
 
     [HttpGet]
     public IActionResult Register()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
 
         return View();
     }
@@ -82,8 +76,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult SendEmailConfirmation()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
 
         return View();
     }
@@ -122,8 +114,6 @@ public class AccountController : Controller
     [HttpGet]
     public async Task<IActionResult> EmailConfirmation(EmailConfirmationVM emailConfirmationVm)
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
 
         if (!ModelState.IsValid)
             return NotFound();
@@ -146,9 +136,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
-
         return View();
     }
 
@@ -215,8 +202,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult ForgetPassword()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
 
         return View();
     }
@@ -260,8 +245,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult ValidateOtp()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
 
         if (TempData["otp_validation"] is null)
             return NotFound();
@@ -311,9 +294,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult NewPassword()
     {
-        if (!_guestGuard.IsGuest(User))
-            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new { area = AreaConstants.ADMIN_AREA });
-
         return View();
     }
 
