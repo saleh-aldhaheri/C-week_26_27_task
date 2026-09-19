@@ -268,7 +268,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("ApplicationUserOtps");
+                    b.ToTable("ApplicationUserOtps", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Actor", b =>
@@ -296,7 +296,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("FullName");
 
-                    b.ToTable("Actors");
+                    b.ToTable("Actors", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Category", b =>
@@ -324,7 +324,7 @@ namespace week_26_27.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Cinema", b =>
@@ -353,7 +353,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Cinemas");
+                    b.ToTable("Cinemas", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Movie", b =>
@@ -399,7 +399,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movies", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.MovieActor", b =>
@@ -423,7 +423,7 @@ namespace week_26_27.Migrations
                     b.HasIndex("MovieId", "ActorId")
                         .IsUnique();
 
-                    b.ToTable("MovieActors");
+                    b.ToTable("MovieActors", (string)null);
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.MovieSubImg", b =>
@@ -445,7 +445,7 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("MovieSubImgs");
+                    b.ToTable("MovieSubImgs", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

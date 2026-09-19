@@ -92,23 +92,20 @@ namespace week_26_27_task
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapWhen(
-            context =>
-                context.Request.Path.StartsWithSegments("/Identity/Account/Login") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/Register") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/SendEmailConfirmation") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/EmailConfirmation") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/ForgetPassword") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/ValidateOtp") ||
-                context.Request.Path.StartsWithSegments("/Identity/Account/NewPassword") ||
-                context.Request.Path.StartsWithSegments("/")
-            ,
-            branch =>
-            {
-                branch.UseMiddleware<GuestMiddleware>();
-            });
+            app.UseWhen(
+                context =>
+                    context.Request.Path.StartsWithSegments("/Identity/Account/Login") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/Register") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/SendEmailConfirmation") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/EmailConfirmation") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/ForgetPassword") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/ValidateOtp") ||
+                    context.Request.Path.StartsWithSegments("/Identity/Account/NewPassword") ||
+                    context.Request.Path.StartsWithSegments("/"),
+                branch => { branch.UseMiddleware<GuestMiddleware>(); });
 
             app.MapStaticAssets();
             
