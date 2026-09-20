@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using week_26_27.Models;
+using week_26_27.Service.IService;
 using week_26_27.Utilities;
 using week_26_27.ViewModels;
 
@@ -13,51 +14,22 @@ namespace week_26_27.Areas.Admin.Controllers;
 public class UserController : Controller
 {
     private UserManager<ApplicationUser> _userManager;
-    private RoleManager<IdentityRole> _rolesManager; 
+    private RoleManager<IdentityRole> _rolesManager;
     private readonly IPagination _pagination;
 
-    public UserController(UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager, IPagination pagination)
+    private readonly IUserService _userService;
+
+    public UserController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IPagination pagination, IUserService userService)
     {
         _userManager = userManager;
         _pagination = pagination;
         _rolesManager = roleManager;
+        _userService = userService;
     }
-    
+
     public async Task<IActionResult> Index(UserWithFilterAndPaginationVM userIndex)
     {
-        var query = _userManager.Users.AsQueryable();
-
-        var searchKey = userIndex.Search?.ToLower();
-
-        if (searchKey is not null)
-            query = query.Where(e =>
-                e.FirstName.ToLower().Contains(searchKey) ||
-                e.LastName.ToLower().Contains(searchKey) ||
-                (e.Email != null && e.Email.ToLower().Contains(searchKey)) ||
-                (e.UserName != null && e.UserName.ToLower().Contains(searchKey))
-            );
-
-
-        int skip = (userIndex.Pagination.Page - 1) * userIndex.Pagination.PageSize;
-
-        var users = await query.Skip(skip).Take(userIndex.Pagination.PageSize).ToListAsync();
-
-        var userRole = new Dictionary<ApplicationUser, string>();
-
-        foreach(var user in users)
-        {
-            userRole.Add(user, (await _userManager.GetRolesAsync(user)).FirstOrDefault()!);
-        }
-
-        userIndex.UsersRoles = userRole;
-
-        userIndex.Roles = _rolesManager.Roles.ToList();
-
-        userIndex.Pagination = _pagination.Paginate(
-             count: query.Count(),
-             size:  userIndex.Pagination.PageSize,
-             page: userIndex.Pagination.Page
-        );
+        userIndex = await _userService.GetUsers(userIndex);
 
         return View(model: userIndex);
     }
@@ -67,21 +39,15 @@ public class UserController : Controller
     [Authorize(Roles = RoleConstants.SUPER_ADMIN)]
     public async Task<IActionResult> ChangeRole([FromForm] ChangeRoleVM changeRoleVm)
     {
-        var user = await _userManager.FindByIdAsync(changeRoleVm.Id);
+        try
+        {
+            await _userService.ChangeRole(changeRoleVm);
 
-        if (user is null)
-            return NotFound();
-
-        var role = await _rolesManager.FindByNameAsync(changeRoleVm.Role);
-
-        if (role is null)
-            return NotFound();
-
-        var currentRole = await _userManager.GetRolesAsync(user);
-
-        await _userManager.RemoveFromRolesAsync(user, currentRole);
-
-        await _userManager.AddToRoleAsync(user, changeRoleVm.Role);
+        }
+        catch (Exception)
+        {
+            NotFound();
+        }
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Role Changed Sucssfully";
 
@@ -92,21 +58,16 @@ public class UserController : Controller
     [Authorize(Roles = RoleConstants.SUPER_ADMIN)]
     public async Task<IActionResult> Update(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-
-        if (user is null)
-            return NotFound();
-        var roles = await _rolesManager.Roles.ToListAsync();
-
-        var currentRole = (await _userManager.GetRolesAsync(user))?.FirstOrDefault();
-
-        return View(model: new UserWithRoleVM
+        try
         {
-            UserId = user.Id,
-            applicationUser = user,
-            SelectRoleName = currentRole ?? "",
-            Roles = roles
-        }); 
+            var userWithRoleVm = await _userService.updateGet(id);
+            return View(model: userWithRoleVm);
+        }
+        catch(Exception)
+        {
+            return NotFound();
+        }
+      
     }
 
     [HttpPost]
@@ -114,31 +75,18 @@ public class UserController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(UserWithRoleVM userWithRoleVm)
     {
-        if (!ModelState.IsValid)
-            return View(userWithRoleVm);
+        try
+        {
+            var result = await _userService.UpdateUser(userWithRoleVm);
 
-        var role = await _rolesManager.FindByNameAsync(userWithRoleVm.SelectRoleName);
-        if (role is null)
+            if (result is not null)
+                return View(result);
+
+        }
+        catch (Exception)
+        {
             return NotFound();
-
-        var user = await _userManager.FindByIdAsync(userWithRoleVm.UserId);
-        if (user is null)
-            return NotFound();
-
-        user.UserName = userWithRoleVm.applicationUser.UserName;
-        user.Email = userWithRoleVm.applicationUser.Email;
-        user.PhoneNumber = userWithRoleVm.applicationUser.PhoneNumber;
-
-        var updateResult = await _userManager.UpdateAsync(user);
-
-        if (!updateResult.Succeeded)
-            return View(userWithRoleVm);
-
-        var currentRoles = await _userManager.GetRolesAsync(user);
-
-        await _userManager.RemoveFromRolesAsync(user, currentRoles);
-        
-        await _userManager.AddToRoleAsync(user, userWithRoleVm.SelectRoleName);
+        }
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "User Updated Successfully";
 
@@ -149,12 +97,14 @@ public class UserController : Controller
     [Authorize(Roles = RoleConstants.SUPER_ADMIN)]
     public async Task<IActionResult> Delete(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        try
+        {
+            await _userService.Delete(id);
 
-        if (user is null)
+        }catch(Exception)
+        {
             return NotFound();
-
-        await _userManager.DeleteAsync(user);
+        }
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "User Delete Succsfully";
 
