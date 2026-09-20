@@ -4,7 +4,7 @@ using week_26_27.Utilities;
 
 namespace week_26_27_task.Areas.Admin.Controllers;
 
-[Area("Admin")]
+[Area(AreaConstants.ADMIN_AREA)]
 [Authorize(Roles = $"{RoleConstants.ADMIN},{RoleConstants.SUPER_ADMIN}")]
 public class CinemaController : Controller
 {

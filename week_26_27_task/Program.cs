@@ -8,6 +8,7 @@ using week_26_27.Models;
 using week_26_27.Repositories;
 using week_26_27.Repositories.IRepositories;
 using week_26_27.Service;
+using week_26_27.Service.IService;
 using week_26_27_task.Data.ApplicationDbContext;
 using week_26_27_task.Services;
 
@@ -39,6 +40,8 @@ namespace week_26_27_task
             builder.Services.AddScoped<IMovieService, MovieService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IAccountService, AccountSerivce>();
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
