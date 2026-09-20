@@ -1,10 +1,9 @@
-﻿using Mapster;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using week_26_27.Models;
 using week_26_27.ViewModels;
 using week_26_27.Utilities;
+using week_26_27.Service.IService;
 
 namespace week_26_27.Areas.Identity.Controllers;
 
@@ -12,21 +11,15 @@ namespace week_26_27.Areas.Identity.Controllers;
 public class AccountController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IEmailSender _emailSender;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IRepository<ApplicationUserOtp> _applicationUserOtp;
+    private readonly IAccountService _accountService;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
-        IEmailSender emailSender,
-        SignInManager<ApplicationUser> signInManager,
-        IRepository<ApplicationUserOtp> applicationUserOtp
+        IAccountService accountSerivce
     )
     {
         _userManager = userManager;
-        _emailSender = emailSender;
-        _signInManager = signInManager;
-        _applicationUserOtp = applicationUserOtp;
+        _accountService = accountSerivce; 
     }
 
     [HttpGet]
@@ -42,31 +35,27 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(registerVm);
 
-        var user = registerVm.Adapt<ApplicationUser>();
-
-        var result = await _userManager.CreateAsync(user, registerVm.Password);
-
-        await _userManager.AddToRoleAsync(user, RoleConstants.ADMIN);
-
-        if (!result.Succeeded)
+       var result = await _accountService.Register(registerVm, (token, userId) => Url.Action(
+        nameof(EmailConfirmation),
+        ControllerConstants.ACCOUNT_CONTROLLER,
+        new
         {
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
+            area = AreaConstants.IDENTITY_AREA,
+            userId,
+            token
+        },
+        Request.Scheme
+        )!);
+
+        if(result is not null)
+        {
+            foreach(var error in result)
+            {
+                ModelState.AddModelError(error.Key, error.Value);
+            }
 
             return View(registerVm);
         }
-
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var url = Url.Action(nameof(EmailConfirmation), ControllerConstants.ACCOUNT_CONTROLLER, new
-        {
-            area = AreaConstants.IDENTITY_AREA,
-            user.Id,
-            token
-        }, Request.Scheme);
-
-        string body = $"<h1>Please confirm your account by clicking <b><a href='{url}'>here</a></b></h1>";
-
-        await _emailSender.SendEmailAsync(user.Email ?? string.Empty, "Email Confirmation", body);
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Account Created successfully";
 
@@ -86,25 +75,24 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(sendEmailConfirmationVm);
 
-        var user = await _userManager.FindByEmailAsync(sendEmailConfirmationVm.EmailOrUserName) ??
-                   await _userManager.FindByNameAsync(sendEmailConfirmationVm.EmailOrUserName);
-
-        if (user is null)
-            return NotFound();
-
-
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-        var url = Url.Action(nameof(EmailConfirmation), ControllerConstants.ACCOUNT_CONTROLLER, new
+        try
         {
-            area = AreaConstants.IDENTITY_AREA,
-            user.Id,
-            token
-        }, Request.Scheme);
-
-        string body = $"<h1>Please confirm your account by clicking <b><a href='{url}'>here</a></b></h1>";
-
-        await _emailSender.SendEmailAsync(user.Email ?? string.Empty, "Email Confirmation", body);
+            await _accountService.SendEmailConfirmation(sendEmailConfirmationVm, (token, userId) => Url.Action(
+                nameof(EmailConfirmation),
+                ControllerConstants.ACCOUNT_CONTROLLER,
+                new
+                {
+                    area = AreaConstants.IDENTITY_AREA,
+                    userId,
+                    token
+                },
+                Request.Scheme
+            )!);
+        }
+        catch (Exception)
+        {
+            return NotFound();
+        }
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Confirmation Mail Sent Successfully";
 
@@ -118,15 +106,19 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return NotFound();
 
-        var user = await _userManager.FindByIdAsync(emailConfirmationVm.Id);
+        Dictionary<string, string>? result;
 
-        if (user is null)
+        try
+        {
+            result = await _accountService.EmailConfirmation(emailConfirmationVm);
+        }
+        catch (Exception)
+        {
             return NotFound();
+        }
 
-        var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationVm.Token);
-
-        if (!result.Succeeded)
-            TempData[NotificationConstants.ERROR_NOTIFICATION] = string.Join(", ", result.Errors.Select(e => e.Description));
+        if (result is not null)
+            TempData[NotificationConstants.ERROR_NOTIFICATION] = string.Join(", ", result.Values);
         else
             TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Email Confrimed";
 
@@ -143,46 +135,24 @@ public class AccountController : Controller
     public async Task<IActionResult> Login(LoginVM loginVm)
     {
         if (!ModelState.IsValid)
-            return View(nameof(Login));
+            return View(loginVm);
+
+        var result = await _accountService.Login(loginVm);
+
+        if (result is not null)
+        {
+            foreach (var error in result)
+            {
+                ModelState.AddModelError(error.Key, error.Value);
+            }
+
+            return View(loginVm);
+        }
 
         var user = await _userManager.FindByEmailAsync(loginVm.EmailOrUserName) ??
-                    await _userManager.FindByNameAsync(loginVm.EmailOrUserName);
+                   await _userManager.FindByNameAsync(loginVm.EmailOrUserName);
 
-        if (user is null)
-        {
-            ModelState.AddModelError(nameof(loginVm.EmailOrUserName), "Incorrect Email Or UserName");
-
-            ModelState.AddModelError(nameof(loginVm.Password), "Incorrect Password");
-
-            return View(loginVm);
-        }
-
-        var result = await _signInManager.PasswordSignInAsync(user, loginVm.Password, loginVm.RemeberMe, true);
-
-        if (result.IsLockedOut)
-        {
-            TempData[NotificationConstants.ERROR_NOTIFICATION] = "To Many Attempts Please Try Again Later";
-
-            return View(loginVm);
-        }
-
-        if (result.IsNotAllowed)
-        {
-            TempData[NotificationConstants.ERROR_NOTIFICATION] = "Please Confirm Your Email";
-
-            return View(loginVm);
-        }
-
-        if (!result.Succeeded)
-        {
-            ModelState.AddModelError(nameof(LoginVM.EmailOrUserName), "Invalid User Name or Email");
-
-            ModelState.AddModelError(nameof(LoginVM.Password), "Invalid Password");
-
-            return View(loginVm);
-        }
-
-        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = $"Welcome {user.FirstName} {user.LastName} To Your Account";
+        TempData[NotificationConstants.SUCCESS_NOTIFICATION] = $"Welcome {user!.FirstName} {user.LastName} To Your Account";
 
         return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new
         {
@@ -192,7 +162,7 @@ public class AccountController : Controller
 
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
+        await _accountService.Logout();
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Logut Succesfully";
 
@@ -212,34 +182,24 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(forgetPassword);
 
-        var user = await _userManager.FindByEmailAsync(forgetPassword.EmailOrPassword) ??
-                await _userManager.FindByNameAsync(forgetPassword.EmailOrPassword);
+        string userId;
 
-        if (user is null)
-            return NotFound();
-
-        string otp = new Random().Next(100000, 999999).ToString();
-
-        await _applicationUserOtp.Add(new()
+        try
         {
-            ApplicationUserId = user.Id,
-        
-            Otp = otp
-        });
+            userId = await _accountService.ForgetPassword(forgetPassword);
+        }
+        catch (Exception)
+        {
+            return NotFound();
+        }
 
-        await _applicationUserOtp.CommitAsync();
-
-        string message = $"<h1>Your Otp is: {otp}, Please Don't Share!!!</b></h1>";
-
-        await _emailSender.SendEmailAsync(user.Email ?? string.Empty, "Forget Password Otp", message);
-
-        Response.Cookies.Append("userId", user.Id);
+        Response.Cookies.Append("userId", userId);
 
         TempData["otp_validation"] = Guid.NewGuid().ToString();
-        
+
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = "Otp Sent Succsfully";
 
-        return RedirectToAction(nameof(ValidateOtp)); 
+        return RedirectToAction(nameof(ValidateOtp));
     }
 
     [HttpGet]
@@ -263,30 +223,26 @@ public class AccountController : Controller
         if (userId is null)
             return NotFound();
 
-        var user = await _userManager.FindByIdAsync(userId);
+        Dictionary<string, string>? result;
 
-        if (user is null)
-            return NotFound();
-
-        var dbOtp = _applicationUserOtp.Get(e =>
-            e.IsUsed == false &&
-            e.ExpiredAt > DateTime.UtcNow &&
-            e.Otp == validateOtpVm.Otp &&
-            e.ApplicationUserId == user.Id
-        )
-        .OrderBy(e => e.CreatedAt)
-        .LastOrDefault();
-
-        if (dbOtp is null)
+        try
         {
-            ModelState.AddModelError(nameof(validateOtpVm.Otp), "Invalid Opt");
-        
-            return View(validateOtpVm);
+            result = await _accountService.ValidateOtp(validateOtpVm, userId);
+        }
+        catch (Exception)
+        {
+            return NotFound();
         }
 
-        dbOtp.IsUsed = true;
+        if (result is not null)
+        {
+            foreach (var error in result)
+            {
+                ModelState.AddModelError(error.Key, error.Value);
+            }
 
-        await _applicationUserOtp.CommitAsync();
+            return View(validateOtpVm);
+        }
 
         return RedirectToAction(nameof(NewPassword));
     }
@@ -308,20 +264,22 @@ public class AccountController : Controller
         if (userId is null)
             return NotFound();
 
-        var user = await _userManager.FindByIdAsync(userId);
+        Dictionary<string, string>? result;
 
-        if (user is null)
-            return NotFound();
-
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-        var result = await _userManager.ResetPasswordAsync(user, token, newPasswordVm.Password);
-
-        if (!result.Succeeded)
+        try
         {
-            foreach (var error in result.Errors)
+            result = await _accountService.NewPassword(newPasswordVm, userId);
+        }
+        catch (Exception)
+        {
+            return NotFound();
+        }
+
+        if (result is not null)
+        {
+            foreach (var error in result)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(error.Key, error.Value);
             }
 
             return View(newPasswordVm);

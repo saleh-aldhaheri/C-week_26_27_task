@@ -41,6 +41,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IAccountService, AccountSerivce>();
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
