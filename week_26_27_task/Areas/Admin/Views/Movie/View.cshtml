@@ -20,6 +20,7 @@
             <div class="mb-3">
                 <span class="badge bg-primary">@(Model.Movie.Category?.Name ?? "Uncategorized")</span>
                 <span class="badge bg-secondary">@(Model.Movie.Cinema?.Name ?? "No cinema")</span>
+                <span class="badge bg-info text-dark">@(Model.Movie.Auditorium?.Name ?? "No auditorium")</span>
             </div>
 
             <dl class="row">
@@ -30,10 +31,13 @@
                 <dd class="col-sm-9">@Model.Movie.StartAt.ToString("f")</dd>
 
                 <dt class="col-sm-3">Cinema</dt>
-                <dd class="col-sm-9">@(Model.Movie.Cinema?.Name ?? "—")</dd>
+                <dd class="col-sm-9">@(Model.Movie.Cinema?.Name ?? "ï¿½")</dd>
+
+                <dt class="col-sm-3">Auditorium</dt>
+                <dd class="col-sm-9">@(Model.Movie.Auditorium?.Name ?? "ï¿½")</dd>
 
                 <dt class="col-sm-3">Category</dt>
-                <dd class="col-sm-9">@(Model.Movie.Category?.Name ?? "—")</dd>
+                <dd class="col-sm-9">@(Model.Movie.Category?.Name ?? "ï¿½")</dd>
             </dl>
 
             @if (!string.IsNullOrEmpty(Model.Movie.Description))

@@ -4,9 +4,9 @@ public interface IMovieService
 {
     MovieWithFilterAndPaginationVM GetMovies(MovieWithFilterAndPaginationVM MoviesIndex);
 
-    Task CreateMovie(Movie movie, IFormFile image, List<IFormFile>? images,List<int>? actorsIds, CancellationToken ct = default);
+    Task CreateMovie(MovieWithCategoriesCinemasActors movieWithResouce, CancellationToken ct = default);
 
-    Task UpdateMovie(Movie movie, IFormFile? image, List<IFormFile>? images, List<int>? actorsIds, CancellationToken ct = default);
+    Task UpdateMovie(MovieWithCategoriesCinemasActors movieWithResource, CancellationToken ct = default);
 
     Task DeleteMovie(int id, CancellationToken ct = default);
 

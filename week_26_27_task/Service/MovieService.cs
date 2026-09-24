@@ -1,3 +1,4 @@
+using week_26_27.Models;
 using week_26_27.Repositories.IRepositories;
 
 namespace week_26_27_task.Service;
@@ -24,7 +25,7 @@ public class MovieService : IMovieService
     public MovieWithFilterAndPaginationVM GetMovies(MovieWithFilterAndPaginationVM moviesIndex)
     {
         var movies = _unitOfWork.movieRepository.Get(null,true, [e => e.Category,
-                e => e.Cinema]);
+                e => e.Cinema, e => e.Auditorium]);
 
         var categories = _unitOfWork.categryRepository.Get().Where(e => e.Status == true).Select(e => new Category
         {
@@ -33,6 +34,12 @@ public class MovieService : IMovieService
         });
 
         var cinemas = _unitOfWork.cinemaRepository.Get().Select(e => new Cinema
+        {
+            Id = e.Id,
+            Name = e.Name
+        });
+
+        var auditoriums = _unitOfWork.auditoriumRepository.Get().Select(e => new Auditorium
         {
             Id = e.Id,
             Name = e.Name
@@ -49,7 +56,7 @@ public class MovieService : IMovieService
             movies = movies.Where(e => e.Price <= moviesIndex.MaxPrice);
 
         if (moviesIndex.StartAt is not null)
-            movies.Where(e => e.StartAt == moviesIndex.StartAt);
+            movies = movies.Where(e => e.StartAt.Date == moviesIndex.StartAt.Value.Date);
 
         if (moviesIndex.CategoriasId is not null)
             movies = movies.Where(e => e.CategoryId == moviesIndex.CategoriasId);
@@ -57,32 +64,55 @@ public class MovieService : IMovieService
         if (moviesIndex.CinemaId is not null)
             movies = movies.Where(e => e.CinemaId == moviesIndex.CinemaId);
 
+        if(moviesIndex.AuditoriumId is not null)
+            movies = movies.Where(e => e.AuditoriumId == moviesIndex.AuditoriumId);
+        
         int skip = (moviesIndex.Pagination.Page - 1) * moviesIndex.Pagination.PageSize;
 
         moviesIndex.Movies = movies.Skip(skip).Take(moviesIndex.Pagination.PageSize);
 
         moviesIndex.Pagination = _pagination
             .Paginate(
-            cinemas.Count(),
+            movies.Count(),
             moviesIndex.Pagination.PageSize,
             moviesIndex.Pagination.Page
             );
 
         moviesIndex.Categorias = categories;
         moviesIndex.Cinemas = cinemas;
+        moviesIndex.Auditoriums = auditoriums;
 
         return moviesIndex;
     }
 
-    public async Task CreateMovie(Movie movie, IFormFile image, List<IFormFile>? images, List<int>? actorsIds, CancellationToken ct = default)
+    public async Task CreateMovie(MovieWithCategoriesCinemasActors movieWithResouce, CancellationToken ct = default)
     {
+        var image = movieWithResouce.Image;
+        var movie = movieWithResouce.Movie;
+        var images = movieWithResouce.Images;
+        var actorsIds = movieWithResouce.SelectedActorIds;
+
         string name = _fileHelper.GenerateName(image.FileName);
         string? path = _fileHelper.GeneratePath(name, _imageFilePath);
 
         if (path is null || !_fileHelper.Upload(path, image))
             throw new Exception();
 
+
+        var auditorimu = _unitOfWork.auditoriumRepository.GetOne(e => e.Id == movieWithResouce.SelectedAuditoriumId); 
+        var  cinema = _unitOfWork.cinemaRepository.GetOne( e => e.Id == movieWithResouce.SelectedCinemaId);
+        var category = _unitOfWork.categryRepository.GetOne(e => e.Id == movieWithResouce.SelectedCategroyId);
+
+        if (auditorimu is null || cinema is null || category is null)
+            throw new Exception();
+
+        if (!cinema.Auditoriums.Select(e => e.Id).Contains(auditorimu.Id))
+            throw new Exception(); 
+
         movie.MainImg = name;
+        movie.AuditoriumId = movieWithResouce.SelectedAuditoriumId;
+        movie.CategoryId = movieWithResouce.SelectedCategroyId;
+        movie.CinemaId = movieWithResouce.SelectedCinemaId; 
 
         await _unitOfWork.movieRepository.Add(movie);
         await _unitOfWork.movieRepository.CommitAsync();
@@ -98,11 +128,31 @@ public class MovieService : IMovieService
         }
     }
 
-    public async Task UpdateMovie(Movie movie, IFormFile? image, List<IFormFile>? images, List<int>? actorsIds, CancellationToken ct = default)
+    public async Task UpdateMovie(MovieWithCategoriesCinemasActors movieWithResource, CancellationToken ct = default)
     {
-        Movie DbMovie = GetMovie(movie.Id); 
+        var movie = movieWithResource.Movie;
+        var image = movieWithResource.Image;
+        var images = movieWithResource.Images;
+        var actorsIds = movieWithResource.SelectedActorIds;
 
-        if(image is not null)
+        Movie DbMovie = GetMovie(movie.Id);
+
+        var auditorimu = _unitOfWork.auditoriumRepository.GetOne(e => e.Id == movieWithResource.SelectedAuditoriumId);
+        var cinema = _unitOfWork.cinemaRepository.GetOne(e => e.Id == movieWithResource.SelectedCinemaId);
+        var category = _unitOfWork.categryRepository.GetOne(e => e.Id == movieWithResource.SelectedCategroyId);
+
+        if (auditorimu is null || cinema is null || category is null)
+            throw new Exception();
+
+        movie.CinemaId = cinema.Id;
+        movie.CategoryId = category.Id;
+
+        if (!cinema.Auditoriums.Select(e => e.Id).Contains(auditorimu.Id))
+            throw new Exception();
+
+        movie.AuditoriumId = auditorimu.Id;
+
+        if (image is not null)
         {
             string name = _fileHelper.GenerateName(image.FileName);
             string? path = _fileHelper.GeneratePath(name, _imageFilePath);
@@ -125,6 +175,7 @@ public class MovieService : IMovieService
         }
 
         _unitOfWork.movieRepository.Update(movie);
+        await _unitOfWork.movieRepository.CommitAsync(ct);
 
         if(images is not null && images.Any())
         {
@@ -132,11 +183,10 @@ public class MovieService : IMovieService
             await CreateSubImages(movie.Id,images, ct); 
         }
 
+        await deleteMovieActors(movie.Id, ct);
         if (actorsIds is not null && actorsIds.Any())
         {
-            await deleteMovieActors(movie.Id, ct);
             await CreateMoiveActors(movie.Id, actorsIds, ct);
-
         }
     }
 
@@ -165,7 +215,12 @@ public class MovieService : IMovieService
         var cinemas = _unitOfWork.cinemaRepository.Get().Select(e => new Cinema
         {
             Id = e.Id,
-            Name = e.Name
+            Name = e.Name,
+            Auditoriums = e.Auditoriums.Select(a => new Auditorium
+            {
+                Id = a.Id,
+                Name = a.Name
+            }).ToList()
         });
 
         var categories = _unitOfWork.categryRepository.Get(e => e.Status == true).Select(e => new Category
@@ -194,7 +249,8 @@ public class MovieService : IMovieService
                 e => e.MovieActors,
                 e => e.MovieSubImgs,
                 e => e.Category,
-                e => e.Cinema
+                e => e.Cinema,
+                e => e.Auditorium
                 ]);
 
         if (movie is null)
@@ -230,14 +286,14 @@ public class MovieService : IMovieService
     {
         foreach (var id in actorsIds)
         {
-            await _unitOfWork.movieActorRespository.Add(new()
+            await _unitOfWork.movieActorRepository.Add(new()
             {
                 MovieId = movieId,
                 ActorId = id
             });
         }
 
-        await _unitOfWork.movieActorRespository.CommitAsync();
+        await _unitOfWork.movieActorRepository.CommitAsync();
     }
 
     private async Task deleteSubImages(int moiveId, CancellationToken ct)
@@ -255,15 +311,15 @@ public class MovieService : IMovieService
 
         _unitOfWork.movieSubImgRepository.DeleteRange(subImages);
 
-        await _unitOfWork.movieActorRespository.CommitAsync(ct);
+        await _unitOfWork.movieSubImgRepository.CommitAsync(ct);
 
     }
 
     private async Task deleteMovieActors(int movieId, CancellationToken ct)
     {
-        var movieActors = _unitOfWork.movieActorRespository.Get(e => e.MovieId == movieId);
-        _unitOfWork.movieActorRespository.DeleteRange(movieActors);
+        var movieActors = _unitOfWork.movieActorRepository.Get(e => e.MovieId == movieId);
+        _unitOfWork.movieActorRepository.DeleteRange(movieActors);
 
-        await _unitOfWork.movieActorRespository.CommitAsync();
+        await _unitOfWork.movieActorRepository.CommitAsync();
     }
 }

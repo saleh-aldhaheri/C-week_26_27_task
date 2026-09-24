@@ -23,7 +23,7 @@
                     <span class="input-group-text bg-transparent"><span class="fa fa-search fs--1 text-600"></span></span>
                     <input class="form-control shadow-none" type="search" placeholder="Title or description..." aria-label="search" name="search" value="@Model.Search" />
                 </div>
-            </div>
+            </div> 
 
             <div class="col-6 col-md-4">
                 <label class="form-label fs--1 text-600 mb-1">Category</label>
@@ -43,6 +43,17 @@
                     @foreach (var cinema in Model.Cinemas ?? Enumerable.Empty<Cinema>())
                     {
                         <option value="@cinema.Id" selected="@(Model.CinemaId == cinema.Id)">@cinema.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <label class="form-label fs--1 text-600 mb-1">Auditorium</label>
+                <select class="form-select form-select-sm" aria-label="Filter by auditorium" name="AuditoriumId">
+                    <option value="" selected="@(Model.AuditoriumId == null)">All auditoriums</option>
+                    @foreach (var auditorium in Model.Auditoriums ?? Enumerable.Empty<Auditorium>())
+                    {
+                        <option value="@auditorium.Id" selected="@(Model.AuditoriumId == auditorium.Id)">@auditorium.Name</option>
                     }
                 </select>
             </div>
@@ -96,6 +107,7 @@
                     <th class="align-middle">Title</th>
                     <th class="align-middle">Category</th>
                     <th class="align-middle">Cinema</th>
+                    <th class="align-middle">Auditorium</th>
                     <th class="align-middle">Price</th>
                     <th class="align-middle">Start at</th>
                     <th class="align-middle text-end pe-3">Actions</th>
@@ -108,6 +120,7 @@
                         <th class="align-middle">@movie.Title</th>
                         <td class="align-middle">@movie.Category?.Name</td>
                         <td class="align-middle">@movie.Cinema?.Name</td>
+                        <td class="align-middle">@movie.Auditorium?.Name</td>
                         <td class="align-middle">@movie.Price.ToString("C")</td>
                         <td class="align-middle">@movie.StartAt.ToString("g")</td>
                         <td class="align-middle white-space-nowrap text-end pe-3">
@@ -157,6 +170,7 @@
                    asp-route-search="@Model.Search"
                    asp-route-CategoriasId="@Model.CategoriasId"
                    asp-route-CinemaId="@Model.CinemaId"
+                   asp-route-AuditoriumId="@Model.AuditoriumId"
                    asp-route-MinPrice="@Model.MinPrice"
                    asp-route-MaxPrice="@Model.MaxPrice"
                    asp-route-StartAt="@Model.StartAt">
@@ -198,6 +212,7 @@
                    asp-route-search="@Model.Search"
                    asp-route-CategoriasId="@Model.CategoriasId"
                    asp-route-CinemaId="@Model.CinemaId"
+                   asp-route-AuditoriumId="@Model.AuditoriumId"
                    asp-route-MinPrice="@Model.MinPrice"
                    asp-route-MaxPrice="@Model.MaxPrice"
                    asp-route-StartAt="@Model.StartAt">
