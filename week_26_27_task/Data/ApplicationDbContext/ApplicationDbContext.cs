@@ -14,9 +14,15 @@ namespace week_26_27_task.Data.ApplicationDbContext
         DbSet<Category> Categories { get; set; } = null!;
         DbSet<MovieSubImg> MovieSubImgs { get; set; } = null!;
         DbSet<ApplicationUserOtp> ApplicationUserOtps { get; set; } = null!;
-        
+        DbSet<Auditorium> Auditoriums { get; set; } = null!;
+        DbSet<Seat> Seats { get; set; } = null!;
+        DbSet<Cart> Carts { get; set; } = null!;
+        DbSet<CartSeat> CartSeats { get; set; } = null!;
+        DbSet<Booking> Bookings { get; set; } = null!;
+        DbSet<Ticket> Tickets { get; set; } = null!;
+
         public ApplicationDbContext(DbContextOptions options) : base(options)
-        {}
+        { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,7 +36,7 @@ namespace week_26_27_task.Data.ApplicationDbContext
             modelBuilder.Entity<ApplicationUser>()
                 .HasIndex(e => e.UserName)
                 .IsUnique();
-                
+
             modelBuilder.Entity<Movie>()
                 .Property(e => e.Title)
                 .HasMaxLength(100);
@@ -52,7 +58,7 @@ namespace week_26_27_task.Data.ApplicationDbContext
 
             modelBuilder.Entity<Cinema>()
               .Property(e => e.Name)
-              .HasMaxLength(100);  
+              .HasMaxLength(100);
 
             modelBuilder.Entity<Cinema>()
               .Property(e => e.Location)
@@ -71,6 +77,54 @@ namespace week_26_27_task.Data.ApplicationDbContext
             modelBuilder.Entity<MovieActor>()
                 .HasIndex(ma => new { ma.MovieId, ma.ActorId })
                 .IsUnique(true);
+
+            modelBuilder.Entity<Auditorium>()
+                .Property(e => e.Name)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Cart>()
+                .Property(e => e.TotalPrice)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Booking>()
+                .Property(e => e.TotalPrice)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Ticket>()
+                .Property(e => e.Price)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Seat>()
+                .HasIndex(e => new { e.Column, e.Row, e.AuditoriumId })
+                .IsUnique();
+
+            modelBuilder.Entity<Movie>()
+                .HasIndex(e => new { e.Title, e.CinemaId, e.AuditoriumId, e.StartAt })
+                .IsUnique();
+
+            modelBuilder.Entity<Movie>()
+                .HasOne(m => m.Auditorium)
+                .WithMany(a => a.Movies) 
+                .HasForeignKey(m => m.AuditoriumId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Movie>()
+                .HasOne(m => m.Cinema)
+                .WithMany(c => c.Movies)
+                .HasForeignKey(m => m.CinemaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.Seat)
+                .WithMany()
+                .HasForeignKey(t => t.SeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CartSeat>()
+                .HasOne(cs => cs.Seat)
+                .WithMany()
+                .HasForeignKey(cs => cs.SeatId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

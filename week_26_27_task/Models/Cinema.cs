@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using week_26_27.Models;
 
 namespace week_26_27_task.Models
 {
@@ -16,6 +17,7 @@ namespace week_26_27_task.Models
 
         public string Img { get; set; } = string.Empty;
 
-        public virtual ICollection<Movie> Movies { get; set; } = new List<Movie>();
+        public ICollection<Auditorium> Auditoriums { get; set; } = new List<Auditorium>();
+        public ICollection<Movie> Movies { get; set; } = new List<Movie>();
     }
 }

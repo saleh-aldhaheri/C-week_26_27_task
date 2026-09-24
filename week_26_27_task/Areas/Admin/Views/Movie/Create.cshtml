@@ -23,31 +23,46 @@
             <span class="text-danger" asp-validation-for="Movie.Description"></span>
         </div>
 
-        <div class="col-12 col-md-4">
-            <label asp-for="Movie.CategoryId" class="form-label"></label>
-            <select asp-for="Movie.CategoryId" class="form-select">
+        <div class="col-12 col-md-3">
+            <label asp-for="SelectedCategroyId" class="form-label"></label>
+            <select asp-for="SelectedCategroyId" class="form-select">
                 <option value="">Select a category</option>
                 @foreach (var category in Model.Categories ?? Enumerable.Empty<Category>())
                 {
                     <option value="@category.Id">@category.Name</option>
                 }
             </select>
-            <span class="text-danger" asp-validation-for="Movie.CategoryId"></span>
+            <span class="text-danger" asp-validation-for="SelectedCategroyId"></span>
         </div>
 
-        <div class="col-12 col-md-4">
-            <label asp-for="Movie.CinemaId" class="form-label"></label>
-            <select asp-for="Movie.CinemaId" class="form-select">
+        <div class="col-12 col-md-3">
+            <label asp-for="SelectedCinemaId" class="form-label"></label>
+            <select asp-for="SelectedCinemaId" class="form-select" id="cinemaSelect">
                 <option value="">Select a cinema</option>
-                @foreach (var cinema in Model.Cinemas ?? Enumerable.Empty<Cinema>())
+                @foreach (var cinema in Model.CinemasWithAuditoriums ?? Enumerable.Empty<Cinema>())
                 {
                     <option value="@cinema.Id">@cinema.Name</option>
                 }
             </select>
-            <span class="text-danger" asp-validation-for="Movie.CinemaId"></span>
+            <span class="text-danger" asp-validation-for="SelectedCinemaId"></span>
         </div>
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
+            <label asp-for="SelectedAuditoriumId" class="form-label"></label>
+            <select asp-for="SelectedAuditoriumId" class="form-select" id="auditoriumSelect">
+                <option value="">Select a cinema first</option>
+                @foreach (var cinema in Model.CinemasWithAuditoriums ?? Enumerable.Empty<Cinema>())
+                {
+                    foreach (var auditorium in cinema.Auditoriums)
+                    {
+                        <option value="@auditorium.Id" data-cinema-id="@cinema.Id">@auditorium.Name</option>
+                    }
+                }
+            </select>
+            <span class="text-danger" asp-validation-for="SelectedAuditoriumId"></span>
+        </div>
+
+        <div class="col-12 col-md-3">
             <label asp-for="Movie.StartAt" class="form-label"></label>
             <input asp-for="Movie.StartAt" type="datetime-local" class="form-control" />
             <span class="text-danger" asp-validation-for="Movie.StartAt"></span>
@@ -165,5 +180,47 @@
                 reader.readAsDataURL(file);
             });
         });
+
+        const cinemaSelect = document.getElementById('cinemaSelect');
+        const auditoriumSelect = document.getElementById('auditoriumSelect');
+
+        const auditoriumChoices = Array.from(auditoriumSelect.options)
+            .filter(function (option) { return option.dataset.cinemaId; })
+            .map(function (option) {
+                return { value: option.value, text: option.text, cinemaId: option.dataset.cinemaId };
+            });
+
+        const initialAuditoriumId = auditoriumSelect.value;
+
+        function renderAuditoriums(preserveSelection) {
+            const cinemaId = cinemaSelect.value;
+
+            auditoriumSelect.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.text = cinemaId ? 'Select an auditorium' : 'Select a cinema first';
+            auditoriumSelect.appendChild(placeholder);
+
+            auditoriumChoices
+                .filter(function (choice) { return choice.cinemaId === cinemaId; })
+                .forEach(function (choice) {
+                    const option = document.createElement('option');
+                    option.value = choice.value;
+                    option.text = choice.text;
+
+                    if (preserveSelection && choice.value === initialAuditoriumId) {
+                        option.selected = true;
+                    }
+
+                    auditoriumSelect.appendChild(option);
+                });
+        }
+
+        cinemaSelect.addEventListener('change', function () {
+            renderAuditoriums(false);
+        });
+
+        renderAuditoriums(true);
     </script>
 }

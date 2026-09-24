@@ -59,16 +59,9 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<bool> CommitAsync(CancellationToken ct = default)
     {
-        try
-        {
-            await _dbContext.SaveChangesAsync(ct);
+        await _dbContext.SaveChangesAsync(ct);
 
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+        return true;
     }
 
     public IQueryable<T> Get(

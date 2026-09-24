@@ -43,12 +43,12 @@ public class MovieController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        var ( cinemas,  categories,  actors) =  _movieService.GetDropDowns();
+        var (cinemasWithAuditoriums,  categories,  actors) =  _movieService.GetDropDowns();
 
         return View(new MovieWithCategoriesCinemasActors()
         {
             Categories = categories,
-            Cinemas = cinemas,
+            CinemasWithAuditoriums = cinemasWithAuditoriums,
             Actors = actors
         });
     }
@@ -59,7 +59,7 @@ public class MovieController : Controller
     {
         if (movieWithResource.Image is null || !ModelState.IsValid)
         {
-            (movieWithResource.Cinemas, movieWithResource.Categories, movieWithResource.Actors) =  _movieService.GetDropDowns();
+            (movieWithResource.CinemasWithAuditoriums, movieWithResource.Categories, movieWithResource.Actors) =  _movieService.GetDropDowns();
 
             return View(movieWithResource);
         }
@@ -67,10 +67,7 @@ public class MovieController : Controller
         try
         {
             await _movieService.CreateMovie(
-                movieWithResource.Movie,
-                movieWithResource.Image,
-                movieWithResource?.Images,
-                movieWithResource?.SelectedActorIds,
+              movieWithResource,
                 ct
             );
         }
@@ -89,7 +86,7 @@ public class MovieController : Controller
     {
         Movie? movie = null;
 
-        var (cinemas, categories, actors) =  _movieService.GetDropDowns();
+        var (cinemasWithAuditoriums, categories, actors) =  _movieService.GetDropDowns();
 
         try
         {
@@ -105,8 +102,11 @@ public class MovieController : Controller
         {
             Movie = movie,
             Categories = categories,
-            Cinemas = cinemas,
-            Actors = actors
+            CinemasWithAuditoriums = cinemasWithAuditoriums,
+            Actors = actors,
+            SelectedAuditoriumId = movie.AuditoriumId,
+            SelectedCategroyId = movie.CategoryId,
+            SelectedCinemaId = movie.CinemaId
         });
     }
 
@@ -118,20 +118,20 @@ public class MovieController : Controller
 
         if (!ModelState.IsValid)
         {
-            (movieWithResource.Cinemas, movieWithResource.Categories, movieWithResource.Actors) =  _movieService.GetDropDowns();
-            
-            movieWithResource.Movie = _movieService.GetMovie(id);
-            
+            (movieWithResource.CinemasWithAuditoriums, movieWithResource.Categories, movieWithResource.Actors) = _movieService.GetDropDowns();
+
+            var dbMovie = _movieService.GetMovie(id);
+            movieWithResource.Movie.MainImg = dbMovie.MainImg;
+            movieWithResource.Movie.MovieSubImgs = dbMovie.MovieSubImgs;
+            movieWithResource.Movie.MovieActors = dbMovie.MovieActors;
+
             return View(movieWithResource);
         }
 
         try
         {
             await _movieService.UpdateMovie(
-                 movieWithResource.Movie, 
-                 movieWithResource.Image,
-                movieWithResource.Images,
-                movieWithResource.SelectedActorIds,  
+                movieWithResource,
                 ct
                 );
         }

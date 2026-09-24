@@ -31,6 +31,12 @@ namespace week_26_27_task
             builder.Services.AddScoped<IBulkRepository<MovieActor>, BulkRepository<MovieActor>>();
             builder.Services.AddScoped<IBulkRepository<MovieSubImg>, BulkRepository<MovieSubImg>>();
             builder.Services.AddScoped<IRepository<ApplicationUserOtp>, Repository<ApplicationUserOtp>>();
+            builder.Services.AddScoped<IRepository<Booking>, Repository<Booking>>();
+            builder.Services.AddScoped<IRepository<Ticket>, Repository<Ticket>>();
+            builder.Services.AddScoped<IRepository<Cart>, Repository<Cart>>();
+            builder.Services.AddScoped<IRepository<CartSeat>, Repository<CartSeat>>();
+            builder.Services.AddScoped<IRepository<Auditorium>, Repository<Auditorium>>();
+            builder.Services.AddScoped<IRepository<Seat>, Repository<Seat>>();
             builder.Services.AddScoped<IUnitOfWork, UniteOfWork>();
 
             //services 
