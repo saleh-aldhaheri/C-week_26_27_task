@@ -1,4 +1,6 @@
-﻿namespace week_26_27.Middlewares;
+﻿using week_26_27.Utilities;
+
+namespace week_26_27.Middlewares;
 
 public class GuestMiddleware
 {
@@ -13,7 +15,14 @@ public class GuestMiddleware
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            context.Response.Redirect("/Admin/Home/Index");
+            if(context.User.IsInRole(RoleConstants.CUSTOMER))
+            {
+                context.Response.Redirect("/Customer/Home/Index");
+            }else
+            {
+                context.Response.Redirect("/Admin/Home/Index");
+            }
+
             return;
         }
 

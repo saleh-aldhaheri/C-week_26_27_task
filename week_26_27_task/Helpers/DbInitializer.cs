@@ -51,6 +51,13 @@ public class DbInitializer : IDbInitializer
         })
             .GetAwaiter()
             .GetResult();
+
+        _roleManager.CreateAsync(new IdentityRole
+        {
+            Name = RoleConstants.CUSTOMER
+        })
+            .GetAwaiter()
+            .GetResult();
     }
 
     private void SeedAdmin()
