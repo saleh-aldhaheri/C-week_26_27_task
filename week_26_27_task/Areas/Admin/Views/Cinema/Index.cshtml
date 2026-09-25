@@ -71,6 +71,13 @@
             <td class="align-middle  text-truncate" style="max-width= 100px">@cinema.Location</td>
             <td class="align-middle white-space-nowrap text-end pe-3">
               <div class="d-flex gap-3 justify-content-end">
+                <a class="text-warning" title="Auditoriums"
+                   asp-controller="@ControllerConstants.AUDITORIUM_CONTROLLER"
+                   asp-action="Index"
+                   asp-area="@AreaConstants.ADMIN_AREA"
+                   asp-route-cinemaId="@cinema.Id">
+                  <span class="fas fa-eye"></span>
+                </a>
                 <a class="text-warning" title="Update"
                    asp-controller="@ControllerConstants.CINEMA_CONTROLLER"
                    asp-action="Update"

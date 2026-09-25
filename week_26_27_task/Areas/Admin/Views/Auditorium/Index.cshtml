@@ -1,0 +1,77 @@
+@model Cinema
+
+<div class="container my-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">@Model.Name</h2>
+            <div class="text-600 fs--1">Auditorium management</div>
+        </div>
+        <a class="btn btn-sm btn-falcon-default"
+           asp-controller="@ControllerConstants.CINEMA_CONTROLLER"
+           asp-action="Index"
+           asp-area="@AreaConstants.ADMIN_AREA">
+            <span class="fas fa-chevron-left"></span><span class="ms-1">Back to cinemas</span>
+        </a>
+    </div>
+
+    @if (Model.Auditoriums.Any())
+    {
+        <div class="table-responsive scrollbar">
+            <table class="table table-bordered table-striped fs--1 mb-0">
+                <thead class="bg-200 text-900">
+                    <tr>
+                        <th class="align-middle">Name</th>
+                        <th class="align-middle">Rows</th>
+                        <th class="align-middle">Columns</th>
+                        <th class="align-middle">Number of seats</th>
+                        <th class="align-middle">Action</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var auditorium in Model.Auditoriums)
+                    {
+                        <tr>
+                            <th class="align-middle">@auditorium.Name</th>
+                            <td class="align-middle">@auditorium.Rows</td>
+                            <td class="align-middle">@auditorium.Columns</td>
+                            <td class="align-middle">@(auditorium.Rows * auditorium.Columns)</td>   
+                            <td>                            
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a class="text-warning" title="Update"
+                                       asp-controller="@ControllerConstants.AUDITORIUM_CONTROLLER"
+                                       asp-action="Update"
+                                       asp-area="@AreaConstants.ADMIN_AREA"
+                                       asp-route-id="@auditorium.Id">
+                                        <span class="fas fa-edit"></span>
+                                    </a>
+                                    <a class="text-danger btn-delete" title="Delete"
+                                       asp-controller="@ControllerConstants.AUDITORIUM_CONTROLLER"
+                                       asp-action="Delete"
+                                       asp-area="@AreaConstants.ADMIN_AREA"
+                                       asp-route-id="@auditorium.Id">
+                                        <span class="fas fa-trash-alt"></span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted mb-0">This cinema has no auditoriums yet.</p>
+    }
+
+</div>
+
+@section DeleteConfirmation {
+    <partial name="_ConfirmationDialogPartial" />
+}
+
+@section Notification {
+    <partial name="_NotificationPartial" />
+}

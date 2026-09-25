@@ -271,29 +271,6 @@ namespace week_26_27.Migrations
                     b.ToTable("ApplicationUserOtps");
                 });
 
-            modelBuilder.Entity("week_26_27.Models.Auditorium", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CinemaId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CinemaId");
-
-                    b.ToTable("Auditoriums");
-                });
-
             modelBuilder.Entity("week_26_27.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -308,6 +285,9 @@ namespace week_26_27.Migrations
 
                     b.Property<int>("BookingStatus")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("MovieId")
                         .HasColumnType("int");
@@ -330,6 +310,9 @@ namespace week_26_27.Migrations
 
                     b.Property<string>("TransactionId")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -381,7 +364,7 @@ namespace week_26_27.Migrations
                     b.Property<DateTime>("ExpiredAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("SeatId")
+                    b.Property<int?>("SeatId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -407,9 +390,8 @@ namespace week_26_27.Migrations
                     b.Property<int>("Column")
                         .HasColumnType("int");
 
-                    b.Property<string>("Row")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Row")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -436,7 +418,7 @@ namespace week_26_27.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SeatId")
+                    b.Property<int?>("SeatId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -547,9 +529,6 @@ namespace week_26_27.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CinemaId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -577,11 +556,9 @@ namespace week_26_27.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("CinemaId");
-
                     b.HasIndex("Title");
 
-                    b.HasIndex("Title", "CinemaId", "AuditoriumId", "StartAt")
+                    b.HasIndex("Title", "AuditoriumId", "StartAt")
                         .IsUnique();
 
                     b.ToTable("Movies");
@@ -631,6 +608,35 @@ namespace week_26_27.Migrations
                     b.HasIndex("MovieId");
 
                     b.ToTable("MovieSubImgs");
+                });
+
+            modelBuilder.Entity("week_26_27_task.ViewModels.Auditorium", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CinemaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CinemaId");
+
+                    b.ToTable("Auditoriums");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -695,17 +701,6 @@ namespace week_26_27.Migrations
                     b.Navigation("applicationUser");
                 });
 
-            modelBuilder.Entity("week_26_27.Models.Auditorium", b =>
-                {
-                    b.HasOne("week_26_27_task.Models.Cinema", "Cinema")
-                        .WithMany("Auditoriums")
-                        .HasForeignKey("CinemaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cinema");
-                });
-
             modelBuilder.Entity("week_26_27.Models.Booking", b =>
                 {
                     b.HasOne("week_26_27_task.Models.Movie", "Movie")
@@ -738,9 +733,7 @@ namespace week_26_27.Migrations
 
                     b.HasOne("week_26_27.Models.Seat", "Seat")
                         .WithMany()
-                        .HasForeignKey("SeatId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("SeatId");
 
                     b.Navigation("Cart");
 
@@ -749,7 +742,7 @@ namespace week_26_27.Migrations
 
             modelBuilder.Entity("week_26_27.Models.Seat", b =>
                 {
-                    b.HasOne("week_26_27.Models.Auditorium", "Auditorium")
+                    b.HasOne("week_26_27_task.ViewModels.Auditorium", "Auditorium")
                         .WithMany("Seats")
                         .HasForeignKey("AuditoriumId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -768,9 +761,7 @@ namespace week_26_27.Migrations
 
                     b.HasOne("week_26_27.Models.Seat", "Seat")
                         .WithMany()
-                        .HasForeignKey("SeatId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("SeatId");
 
                     b.Navigation("Booking");
 
@@ -779,10 +770,10 @@ namespace week_26_27.Migrations
 
             modelBuilder.Entity("week_26_27_task.Models.Movie", b =>
                 {
-                    b.HasOne("week_26_27.Models.Auditorium", "Auditorium")
+                    b.HasOne("week_26_27_task.ViewModels.Auditorium", "Auditorium")
                         .WithMany("Movies")
                         .HasForeignKey("AuditoriumId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("week_26_27_task.Models.Category", "Category")
@@ -791,17 +782,9 @@ namespace week_26_27.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("week_26_27_task.Models.Cinema", "Cinema")
-                        .WithMany("Movies")
-                        .HasForeignKey("CinemaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Auditorium");
 
                     b.Navigation("Category");
-
-                    b.Navigation("Cinema");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.MovieActor", b =>
@@ -834,11 +817,15 @@ namespace week_26_27.Migrations
                     b.Navigation("Movie");
                 });
 
-            modelBuilder.Entity("week_26_27.Models.Auditorium", b =>
+            modelBuilder.Entity("week_26_27_task.ViewModels.Auditorium", b =>
                 {
-                    b.Navigation("Movies");
+                    b.HasOne("week_26_27_task.Models.Cinema", "Cinema")
+                        .WithMany("Auditoriums")
+                        .HasForeignKey("CinemaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Seats");
+                    b.Navigation("Cinema");
                 });
 
             modelBuilder.Entity("week_26_27.Models.Booking", b =>
@@ -864,8 +851,6 @@ namespace week_26_27.Migrations
             modelBuilder.Entity("week_26_27_task.Models.Cinema", b =>
                 {
                     b.Navigation("Auditoriums");
-
-                    b.Navigation("Movies");
                 });
 
             modelBuilder.Entity("week_26_27_task.Models.Movie", b =>
@@ -873,6 +858,13 @@ namespace week_26_27.Migrations
                     b.Navigation("MovieActors");
 
                     b.Navigation("MovieSubImgs");
+                });
+
+            modelBuilder.Entity("week_26_27_task.ViewModels.Auditorium", b =>
+                {
+                    b.Navigation("Movies");
+
+                    b.Navigation("Seats");
                 });
 #pragma warning restore 612, 618
         }

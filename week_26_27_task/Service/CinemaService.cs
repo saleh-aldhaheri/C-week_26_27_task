@@ -1,21 +1,23 @@
 using System.Linq.Expressions;
 using week_26_27.Repositories.IRepositories;
+using week_26_27.Service.IService;
 
 namespace week_26_27_task.Service;
 public class CinemaService : ICinemaService
 {
-    private IUnitOfWork _unitOfWork;
-    private IPagination _pagination;
-
-    private IFileHelper _fileHelper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IPagination _pagination;
+    private readonly IFileHelper _fileHelper;
+    private readonly IAuditoriumService _auditoriumService;
 
     private readonly string _imageFilePath = "assets\\images\\cinema";
 
-    public CinemaService(IUnitOfWork unitOfWork, IPagination pagination, IFileHelper fileHelper)
+    public CinemaService(IUnitOfWork unitOfWork, IPagination pagination, IFileHelper fileHelper, IAuditoriumService auditoriumService)
     {
         _unitOfWork = unitOfWork;
         _pagination = pagination;
         _fileHelper = fileHelper;
+        _auditoriumService = auditoriumService;
     }
 
     public CinemaWithFilterAndPaginationVM GetCinemas(CinemaWithFilterAndPaginationVM cinemasIndex)
@@ -44,8 +46,11 @@ public class CinemaService : ICinemaService
         return cinemasIndex;
     }
 
-    public async Task CreateCinema(Cinema cinema, IFormFile image, CancellationToken ct = default)
+    public async Task CreateCinema(CinemaWithResources cinemaWithResources, CancellationToken ct = default)
     {
+        var image = cinemaWithResources.Image;
+        var cinema = cinemaWithResources.Cinema;
+
         var name = _fileHelper.GenerateName(image.FileName);
         var path = _fileHelper.GeneratePath(name, _imageFilePath);
 
@@ -57,10 +62,16 @@ public class CinemaService : ICinemaService
         await _unitOfWork.cinemaRepository.Add(entity: cinema);
 
         await _unitOfWork.cinemaRepository.CommitAsync(ct);
+
+        foreach (var auditorium in cinemaWithResources.CreateAuditorium)
+            await _auditoriumService.CreateAuditorium(cinema.Id, auditorium, ct);
     }
 
-    public async Task UpdateCinema(Cinema cinema, CancellationToken ct = default, IFormFile? image = null)
+    public async Task UpdateCinema(CinemaWithResources cinemaWithResource, CancellationToken ct = default)
     {
+        var cinema = cinemaWithResource.Cinema;
+        var image = cinemaWithResource.Image;
+
         Cinema dbCinema = GetCinema(cinema.Id);
 
         if (image is not null)
@@ -109,7 +120,7 @@ public class CinemaService : ICinemaService
 
     public Cinema GetCinema(int id)
     {
-        var cinema = _unitOfWork.cinemaRepository.GetOne(exprission: e => e.Id == id, false);
+        var cinema = _unitOfWork.cinemaRepository.GetOne(exprission: e => e.Id == id, false, e => e.Auditoriums);
 
         if (cinema is null)
             throw new Exception();

@@ -181,46 +181,48 @@
             });
         });
 
-        const cinemaSelect = document.getElementById('cinemaSelect');
-        const auditoriumSelect = document.getElementById('auditoriumSelect');
+        const cinemaSelect = document.querySelector('select[name="SelectedCinemaId"]');
+        const auditoriumSelect = document.querySelector('select[name="SelectedAuditoriumId"]');
 
-        const auditoriumChoices = Array.from(auditoriumSelect.options)
-            .filter(function (option) { return option.dataset.cinemaId; })
-            .map(function (option) {
-                return { value: option.value, text: option.text, cinemaId: option.dataset.cinemaId };
+        if (cinemaSelect && auditoriumSelect) {
+            const auditoriumChoices = Array.from(auditoriumSelect.options)
+                .filter(function (option) { return option.dataset.cinemaId; })
+                .map(function (option) {
+                    return { value: option.value, text: option.text, cinemaId: option.dataset.cinemaId };
+                });
+
+            const initialAuditoriumId = auditoriumSelect.value;
+
+            const renderAuditoriums = function (preserveSelection) {
+                const cinemaId = cinemaSelect.value;
+
+                auditoriumSelect.innerHTML = '';
+
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.text = cinemaId ? 'Select an auditorium' : 'Select a cinema first';
+                auditoriumSelect.appendChild(placeholder);
+
+                auditoriumChoices
+                    .filter(function (choice) { return choice.cinemaId === cinemaId; })
+                    .forEach(function (choice) {
+                        const option = document.createElement('option');
+                        option.value = choice.value;
+                        option.text = choice.text;
+
+                        if (preserveSelection && choice.value === initialAuditoriumId) {
+                            option.selected = true;
+                        }
+
+                        auditoriumSelect.appendChild(option);
+                    });
+            };
+
+            cinemaSelect.addEventListener('change', function () {
+                renderAuditoriums(false);
             });
 
-        const initialAuditoriumId = auditoriumSelect.value;
-
-        function renderAuditoriums(preserveSelection) {
-            const cinemaId = cinemaSelect.value;
-
-            auditoriumSelect.innerHTML = '';
-
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.text = cinemaId ? 'Select an auditorium' : 'Select a cinema first';
-            auditoriumSelect.appendChild(placeholder);
-
-            auditoriumChoices
-                .filter(function (choice) { return choice.cinemaId === cinemaId; })
-                .forEach(function (choice) {
-                    const option = document.createElement('option');
-                    option.value = choice.value;
-                    option.text = choice.text;
-
-                    if (preserveSelection && choice.value === initialAuditoriumId) {
-                        option.selected = true;
-                    }
-
-                    auditoriumSelect.appendChild(option);
-                });
+            renderAuditoriums(true);
         }
-
-        cinemaSelect.addEventListener('change', function () {
-            renderAuditoriums(false);
-        });
-
-        renderAuditoriums(true);
     </script>
 }

@@ -7,9 +7,9 @@ public class CartSeat
 
     public Cart Cart { get; set; } = null!;
 
-    public int SeatId { get; set; }
+    public int? SeatId { get; set; }
 
-    public Seat Seat { get; set; } = null!;
+    public Seat? Seat { get; set; }
 
     public DateTime ExpiredAt { get; set; } // User cannot reserve seat forever
 }

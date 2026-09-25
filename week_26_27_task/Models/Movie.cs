@@ -26,9 +26,6 @@ namespace week_26_27_task.Models
         public int CategoryId { get; set; }
         public Category? Category { get; set; } 
 
-        public int CinemaId { get; set; }
-        public Cinema Cinema { get; set; } = null!;
-
         public int AuditoriumId { get; set; }
         public Auditorium Auditorium { get; set; } = null!;
 

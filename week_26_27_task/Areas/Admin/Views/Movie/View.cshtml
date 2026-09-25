@@ -19,7 +19,7 @@
 
             <div class="mb-3">
                 <span class="badge bg-primary">@(Model.Movie.Category?.Name ?? "Uncategorized")</span>
-                <span class="badge bg-secondary">@(Model.Movie.Cinema?.Name ?? "No cinema")</span>
+                <span class="badge bg-secondary">@(Model.Movie.Auditorium?.Cinema?.Name ?? "No cinema")</span>
                 <span class="badge bg-info text-dark">@(Model.Movie.Auditorium?.Name ?? "No auditorium")</span>
             </div>
 
@@ -31,7 +31,7 @@
                 <dd class="col-sm-9">@Model.Movie.StartAt.ToString("f")</dd>
 
                 <dt class="col-sm-3">Cinema</dt>
-                <dd class="col-sm-9">@(Model.Movie.Cinema?.Name ?? "�")</dd>
+                <dd class="col-sm-9">@(Model.Movie.Auditorium?.Cinema?.Name ?? "�")</dd>
 
                 <dt class="col-sm-3">Auditorium</dt>
                 <dd class="col-sm-9">@(Model.Movie.Auditorium?.Name ?? "�")</dd>

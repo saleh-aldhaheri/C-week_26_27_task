@@ -11,7 +11,7 @@ public interface IUnitOfWork : IDisposable
     IBulkRepository<MovieSubImg> movieSubImgRepository { get; }
     IBulkRepository<MovieActor> movieActorRepository { get; }
     IRepository<Auditorium> auditoriumRepository { get;}
-    IRepository<Seat> seatRepository {get;}
+    IBulkRepository<Seat> seatRepository { get; }
     IRepository<Booking> bookingRepository { get;}
     IRepository<Cart> cartRepository {get;}
     IRepository<CartSeat> cartSetRepository {get;}

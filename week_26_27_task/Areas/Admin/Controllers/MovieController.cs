@@ -106,7 +106,7 @@ public class MovieController : Controller
             Actors = actors,
             SelectedAuditoriumId = movie.AuditoriumId,
             SelectedCategroyId = movie.CategoryId,
-            SelectedCinemaId = movie.CinemaId
+            SelectedCinemaId = movie.Auditorium.CinemaId
         });
     }
 

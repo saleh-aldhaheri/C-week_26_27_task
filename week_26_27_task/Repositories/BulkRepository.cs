@@ -19,4 +19,19 @@ public class BulkRepository<T> : Repository<T>, IBulkRepository<T> where T : cla
             return false;
         }
     }
+
+    public async Task<bool> AddRange(IEnumerable<T> entites)
+    {
+        try
+        {
+            await _dbContext.AddRangeAsync(entites);
+
+            return true; 
+        }
+        catch (Exception)
+        {
+
+            return false;
+        }
+    }
 }

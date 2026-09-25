@@ -24,19 +24,25 @@ public class CinemaController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        return View();
+        return View(model: new CinemaWithResources());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
+    public async Task<IActionResult> Create(CinemaWithResources cinemaWithResouces, CancellationToken ct = default)
     {
-        if(cinemaWithImage.Image is null || !ModelState.IsValid) 
-             return View(model: cinemaWithImage);
+        if (cinemaWithResouces.Image is null)
+            ModelState.AddModelError(nameof(cinemaWithResouces.Image), "The cinema image is required.");
+
+        if (cinemaWithResouces.CreateAuditorium is null || !cinemaWithResouces.CreateAuditorium.Any())
+            ModelState.AddModelError(string.Empty, "Please add at least one auditorium.");
+
+        if (!ModelState.IsValid)
+            return View(model: cinemaWithResouces);
 
         try
         {
-           await _cinemaService.CreateCinema(cinemaWithImage.Cinema, cinemaWithImage.Image, ct);
+           await _cinemaService.CreateCinema(cinemaWithResouces, ct);
         
         }catch(Exception)
         {
@@ -63,7 +69,7 @@ public class CinemaController : Controller
         }
 
 
-        return View(model: new CinemaWithImageVm()
+        return View(model: new CinemaWithResources()
         {
             Cinema = cinema
         });
@@ -71,16 +77,16 @@ public class CinemaController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update([FromRoute]int Id, CinemaWithImageVm cinemaWithImage, CancellationToken ct = default)
+    public async Task<IActionResult> Update([FromRoute]int Id, CinemaWithResources cinemaWithResource, CancellationToken ct = default)
     {
-        cinemaWithImage.Cinema.Id = Id; 
+        cinemaWithResource.Cinema.Id = Id; 
 
         if (!ModelState.IsValid)
-            return View(cinemaWithImage);
+            return View(cinemaWithResource);
 
         try
         {
-           await _cinemaService.UpdateCinema(cinemaWithImage.Cinema,  ct, cinemaWithImage.Image);
+           await _cinemaService.UpdateCinema(cinemaWithResource, ct);
 
         }catch(Exception)
         {

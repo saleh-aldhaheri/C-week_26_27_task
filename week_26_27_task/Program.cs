@@ -36,7 +36,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IRepository<Cart>, Repository<Cart>>();
             builder.Services.AddScoped<IRepository<CartSeat>, Repository<CartSeat>>();
             builder.Services.AddScoped<IRepository<Auditorium>, Repository<Auditorium>>();
-            builder.Services.AddScoped<IRepository<Seat>, Repository<Seat>>();
+            builder.Services.AddScoped<IBulkRepository<Seat>, BulkRepository<Seat>>();
             builder.Services.AddScoped<IUnitOfWork, UniteOfWork>();
 
             //services 
@@ -48,6 +48,8 @@ namespace week_26_27_task
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IAccountService, AccountSerivce>();
+            builder.Services.AddScoped<ISeatService, SeatService>();
+            builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();

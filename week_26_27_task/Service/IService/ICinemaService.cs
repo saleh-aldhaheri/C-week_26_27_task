@@ -5,9 +5,9 @@ namespace week_26_27_task.Service.IService;
 {
      CinemaWithFilterAndPaginationVM GetCinemas(CinemaWithFilterAndPaginationVM CinemasIndex);
 
-     Task CreateCinema(Cinema cinema,IFormFile image, CancellationToken ct = default);
+     Task CreateCinema(CinemaWithResources cinemaWithResources, CancellationToken ct = default);
 
-     Task UpdateCinema(Cinema cinema, CancellationToken ct = default, IFormFile? image = null);
+     Task UpdateCinema(CinemaWithResources cinemaWithResource, CancellationToken ct = default);
 
      Task DeleteCinema(int id, CancellationToken ct = default);
 

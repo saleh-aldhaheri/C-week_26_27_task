@@ -2,7 +2,6 @@
 
 public enum BookingStatus
 {
-    Booked, 
     Pending, 
     Canceled, 
     Completed
@@ -25,7 +24,7 @@ public enum PaymentStatus
     Refunded
 }
 
-public class Booking
+public class Booking : Audit
 {
     public int Id { get; set; }
 

@@ -1,0 +1,195 @@
+﻿@model UpdateAuditoriumVM
+
+<div class="row g-4">
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Edit auditorium</h5>
+            </div>
+            <div class="card-body">
+                <form method="post"
+                      asp-controller="@ControllerConstants.AUDITORIUM_CONTROLLER"
+                      asp-action="Update"
+                      asp-area="@AreaConstants.ADMIN_AREA">
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CinemaId" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" maxlength="100" placeholder="Auditorium name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 col-sm-6">
+                            <div class="mb-3">
+                                <label asp-for="Rows" class="form-label"></label>
+                                <input asp-for="Rows" type="number" min="1" max="20" class="form-control" />
+                                <div class="form-text">Between 1 and 20.</div>
+                                <span asp-validation-for="Rows" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="mb-3">
+                                <label asp-for="Columns" class="form-label"></label>
+                                <input asp-for="Columns" type="number" min="1" max="50" class="form-control" />
+                                <div class="form-text">Between 1 and 50.</div>
+                                <span asp-validation-for="Columns" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning fs--1 mb-3" role="alert">
+                        Changing rows or columns regenerates this auditorium's seats. It is blocked while there are active bookings.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <a class="btn btn-falcon-default"
+                           asp-controller="@ControllerConstants.AUDITORIUM_CONTROLLER"
+                           asp-action="Index"
+                           asp-area="@AreaConstants.ADMIN_AREA"
+                           asp-route-cinemaId="@Model.CinemaId">
+                            <span class="fas fa-chevron-left"></span><span class="ms-1">Back</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Seat preview</h5>
+                <span class="badge rounded-pill bg-primary" id="seatCount">0 seats</span>
+            </div>
+            <div class="card-body">
+                <div class="seat-map scrollbar" id="seatsDisplay"></div>
+                <div class="seat-screen">SCREEN</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .seat-map {
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 10px;
+        overflow: auto;
+    }
+
+    .seat-grid {
+        display: grid;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .seat-row-label {
+        width: 24px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #8a8f98;
+        text-align: center;
+    }
+
+    .seat {
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
+        background: #0d6efd;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .seat-screen {
+        width: 70%;
+        margin: 20px auto 0;
+        padding: 6px;
+        border-radius: 4px;
+        background: #e5e7eb;
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 4px;
+        color: #6b7280;
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const rowInput = document.querySelector('input[name="Rows"]');
+        const columnInput = document.querySelector('input[name="Columns"]');
+        const display = document.getElementById('seatsDisplay');
+        const seatCount = document.getElementById('seatCount');
+
+        const SEAT_SIZE = 30;
+        const MAX_ROWS = 20;
+        const MAX_COLUMNS = 50;
+
+        function toInt(value) {
+            const parsed = parseInt(value, 10);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
+        function renderSeats() {
+            const rows = Math.min(Math.max(toInt(rowInput.value), 0), MAX_ROWS);
+            const columns = Math.min(Math.max(toInt(columnInput.value), 0), MAX_COLUMNS);
+
+            display.innerHTML = '';
+
+            if (rows === 0 || columns === 0) {
+                const hint = document.createElement('span');
+                hint.className = 'text-muted fs--1';
+                hint.textContent = 'Enter rows and columns to preview the seats.';
+                display.appendChild(hint);
+                seatCount.textContent = '0 seats';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'seat-grid';
+            grid.style.gridTemplateColumns = '24px repeat(' + columns + ', ' + SEAT_SIZE + 'px)';
+
+            // Back row first (top), row 1 last (bottom) next to the screen.
+            for (let r = rows - 1; r >= 0; r--) {
+                const rowLabel = document.createElement('div');
+                rowLabel.className = 'seat-row-label';
+                rowLabel.textContent = r + 1;
+                grid.appendChild(rowLabel);
+
+                for (let c = 1; c <= columns; c++) {
+                    const seat = document.createElement('div');
+                    seat.className = 'seat';
+                    seat.textContent = c;
+                    grid.appendChild(seat);
+                }
+            }
+
+            display.appendChild(grid);
+            seatCount.textContent = (rows * columns) + ' seats';
+        }
+
+        if (rowInput && columnInput && display) {
+            rowInput.addEventListener('input', renderSeats);
+            columnInput.addEventListener('input', renderSeats);
+            renderSeats();
+        }
+    </script>
+}
+
+@section Notification {
+    <partial name="_NotificationPartial" />
+}
