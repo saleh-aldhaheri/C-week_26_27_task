@@ -1,6 +1,10 @@
-@model CinemaWithImageVm
+@model CinemaWithResources
 
 <form method="post" enctype="multipart/form-data">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <input type="hidden" asp-for="Cinema.Img" />
 
     <div class="mb-3">
         <label asp-for="Cinema.Name" class="form-label"></label>
@@ -12,24 +16,25 @@
     <div class="mb-3">
         <label asp-for="Cinema.Location" class="form-label"></label>
         <textarea asp-for="Cinema.Location" class="form-control" rows="3" maxlength="1000"></textarea>
-        <div class="form-text">Optional, up to 1000 characters.</div>
+        <div class="form-text">Required, up to 1000 characters.</div>
         <span class="text-danger" asp-validation-for="Cinema.Location"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Image" class="form-label"></label>
         <input asp-for="Image" type="file" class="form-control" accept="image/*" id="imageInput" />
+        <div class="form-text">Leave empty to keep the current image.</div>
         <span class="text-danger" asp-validation-for="Image"></span>
     </div>
 
     <div class="mb-3">
         <label class="form-label d-block">Image Preview</label>
-        @if (string.IsNullOrEmpty(Model.Cinema?.Img))
+        @if (string.IsNullOrEmpty(Model.Cinema.Img))
         {
             <img id="imagePreview"
                  src="#"
                  alt="Cinema Image Preview"
-                 class="rounded shadow-sm"
+                 class="rounded shadow-sm d-none"
                  style="width: 120px; height: 120px; object-fit: cover;" />
         }
         else
@@ -52,16 +57,13 @@
         document.getElementById('imageInput').addEventListener('change', function (event) {
             const file = event.target.files[0];
             const preview = document.getElementById('imagePreview');
-
-            @{
-                var originalSrcValue = $"~/assets/images/cinema/{Model.Cinema.Img}";
-            }
-            const originalSrc = "@originalSrcValue";
+            const originalSrc = "@Url.Content($"~/assets/images/cinema/{Model.Cinema.Img}")";
 
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     preview.src = e.target.result;
+                    preview.classList.remove('d-none');
                 };
                 reader.readAsDataURL(file);
             } else {

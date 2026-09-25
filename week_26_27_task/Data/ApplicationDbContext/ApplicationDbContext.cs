@@ -99,32 +99,8 @@ namespace week_26_27_task.Data.ApplicationDbContext
                 .IsUnique();
 
             modelBuilder.Entity<Movie>()
-                .HasIndex(e => new { e.Title, e.CinemaId, e.AuditoriumId, e.StartAt })
+                .HasIndex(e => new { e.Title, e.AuditoriumId, e.StartAt })
                 .IsUnique();
-
-            modelBuilder.Entity<Movie>()
-                .HasOne(m => m.Auditorium)
-                .WithMany(a => a.Movies) 
-                .HasForeignKey(m => m.AuditoriumId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Movie>()
-                .HasOne(m => m.Cinema)
-                .WithMany(c => c.Movies)
-                .HasForeignKey(m => m.CinemaId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.Seat)
-                .WithMany()
-                .HasForeignKey(t => t.SeatId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<CartSeat>()
-                .HasOne(cs => cs.Seat)
-                .WithMany()
-                .HasForeignKey(cs => cs.SeatId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

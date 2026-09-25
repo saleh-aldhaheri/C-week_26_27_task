@@ -25,7 +25,7 @@ public class MovieService : IMovieService
     public MovieWithFilterAndPaginationVM GetMovies(MovieWithFilterAndPaginationVM moviesIndex)
     {
         var movies = _unitOfWork.movieRepository.Get(null,true, [e => e.Category,
-                e => e.Cinema, e => e.Auditorium]);
+                e => e.Auditorium, e => e.Auditorium.Cinema]);
 
         var categories = _unitOfWork.categryRepository.Get().Where(e => e.Status == true).Select(e => new Category
         {
@@ -62,7 +62,7 @@ public class MovieService : IMovieService
             movies = movies.Where(e => e.CategoryId == moviesIndex.CategoriasId);
 
         if (moviesIndex.CinemaId is not null)
-            movies = movies.Where(e => e.CinemaId == moviesIndex.CinemaId);
+            movies = movies.Where(e => e.Auditorium.CinemaId == moviesIndex.CinemaId);
 
         if(moviesIndex.AuditoriumId is not null)
             movies = movies.Where(e => e.AuditoriumId == moviesIndex.AuditoriumId);
@@ -112,7 +112,6 @@ public class MovieService : IMovieService
         movie.MainImg = name;
         movie.AuditoriumId = movieWithResouce.SelectedAuditoriumId;
         movie.CategoryId = movieWithResouce.SelectedCategroyId;
-        movie.CinemaId = movieWithResouce.SelectedCinemaId; 
 
         await _unitOfWork.movieRepository.Add(movie);
         await _unitOfWork.movieRepository.CommitAsync();
@@ -144,7 +143,6 @@ public class MovieService : IMovieService
         if (auditorimu is null || cinema is null || category is null)
             throw new Exception();
 
-        movie.CinemaId = cinema.Id;
         movie.CategoryId = category.Id;
 
         if (!cinema.Auditoriums.Select(e => e.Id).Contains(auditorimu.Id))
@@ -249,8 +247,8 @@ public class MovieService : IMovieService
                 e => e.MovieActors,
                 e => e.MovieSubImgs,
                 e => e.Category,
-                e => e.Cinema,
-                e => e.Auditorium
+                e => e.Auditorium,
+                e => e.Auditorium.Cinema
                 ]);
 
         if (movie is null)

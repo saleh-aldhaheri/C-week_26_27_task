@@ -15,12 +15,15 @@ namespace week_26_27.Migrations
                 name: "FK_Movies_Cinemas_CinemaId",
                 table: "Movies");
 
-            migrationBuilder.AddColumn<int>(
-                name: "AuditoriumId",
+            migrationBuilder.RenameColumn(
+                name: "CinemaId",
                 table: "Movies",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+                newName: "AuditoriumId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_Movies_CinemaId",
+                table: "Movies",
+                newName: "IX_Movies_AuditoriumId");
 
             migrationBuilder.CreateTable(
                 name: "Auditoriums",
@@ -29,7 +32,9 @@ namespace week_26_27.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    CinemaId = table.Column<int>(type: "int", nullable: false)
+                    CinemaId = table.Column<int>(type: "int", nullable: false),
+                    Rows = table.Column<int>(type: "int", nullable: false),
+                    Columns = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -56,7 +61,9 @@ namespace week_26_27.Migrations
                     PaymentStatus = table.Column<int>(type: "int", nullable: false),
                     TransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SessionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -97,7 +104,7 @@ namespace week_26_27.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Row = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Row = table.Column<int>(type: "int", nullable: false),
                     Column = table.Column<int>(type: "int", nullable: false),
                     AuditoriumId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -119,7 +126,7 @@ namespace week_26_27.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CartId = table.Column<int>(type: "int", nullable: false),
-                    SeatId = table.Column<int>(type: "int", nullable: false),
+                    SeatId = table.Column<int>(type: "int", nullable: true),
                     ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -135,8 +142,7 @@ namespace week_26_27.Migrations
                         name: "FK_CartSeats_Seats_SeatId",
                         column: x => x.SeatId,
                         principalTable: "Seats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -146,7 +152,7 @@ namespace week_26_27.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
-                    SeatId = table.Column<int>(type: "int", nullable: false),
+                    SeatId = table.Column<int>(type: "int", nullable: true),
                     BookingId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -162,19 +168,13 @@ namespace week_26_27.Migrations
                         name: "FK_Tickets_Seats_SeatId",
                         column: x => x.SeatId,
                         principalTable: "Seats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Movies_AuditoriumId",
+                name: "IX_Movies_Title_AuditoriumId_StartAt",
                 table: "Movies",
-                column: "AuditoriumId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Movies_Title_CinemaId_AuditoriumId_StartAt",
-                table: "Movies",
-                columns: new[] { "Title", "CinemaId", "AuditoriumId", "StartAt" },
+                columns: new[] { "Title", "AuditoriumId", "StartAt" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -229,15 +229,7 @@ namespace week_26_27.Migrations
                 column: "AuditoriumId",
                 principalTable: "Auditoriums",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Movies_Cinemas_CinemaId",
-                table: "Movies",
-                column: "CinemaId",
-                principalTable: "Cinemas",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
@@ -245,10 +237,6 @@ namespace week_26_27.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Movies_Auditoriums_AuditoriumId",
-                table: "Movies");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Movies_Cinemas_CinemaId",
                 table: "Movies");
 
             migrationBuilder.DropTable(
@@ -270,16 +258,18 @@ namespace week_26_27.Migrations
                 name: "Auditoriums");
 
             migrationBuilder.DropIndex(
-                name: "IX_Movies_AuditoriumId",
+                name: "IX_Movies_Title_AuditoriumId_StartAt",
                 table: "Movies");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Movies_Title_CinemaId_AuditoriumId_StartAt",
-                table: "Movies");
-
-            migrationBuilder.DropColumn(
+            migrationBuilder.RenameColumn(
                 name: "AuditoriumId",
-                table: "Movies");
+                table: "Movies",
+                newName: "CinemaId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_Movies_AuditoriumId",
+                table: "Movies",
+                newName: "IX_Movies_CinemaId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Movies_Cinemas_CinemaId",

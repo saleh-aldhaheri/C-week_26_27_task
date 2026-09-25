@@ -14,7 +14,7 @@ namespace week_26_27.Repositories
             IBulkRepository<MovieSubImg> movieSubImgRepository,
             IBulkRepository<MovieActor> movieActorRepository,
             IRepository<Auditorium> auditoriumRepository,
-            IRepository<Seat> seatRepository,
+            IBulkRepository<Seat> seatRepository,
             IRepository<Booking> bookingRepository,
             IRepository<Cart> cartRepository,
             IRepository<CartSeat> cartSetRepository,
@@ -42,7 +42,7 @@ namespace week_26_27.Repositories
         public IRepository<Movie> movieRepository { get; }
         public IRepository<Actor> actorRepository { get; }
         public IRepository<Auditorium> auditoriumRepository { get; }
-        public IRepository<Seat> seatRepository { get; }
+        public IBulkRepository<Seat> seatRepository { get; }
         public IRepository<Booking> bookingRepository { get; }
         public IRepository<Cart> cartRepository { get; }
         public IRepository<CartSeat> cartSetRepository { get; }
