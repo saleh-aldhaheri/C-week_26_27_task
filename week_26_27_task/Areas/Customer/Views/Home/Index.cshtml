@@ -1,5 +1,306 @@
-﻿<h1>Saleh Ahmed</h1> 
+﻿@model MovieWithFilterAndPaginationVM?
 
-<a asp-action="Login" 
-   asp-controller="@ControllerConstants.ACCOUNT_CONTROLLER" 
-   asp-area="@AreaConstants.IDENTITY_AREA">Login</a> 
+@{
+    var movies = Model?.Movies ?? Enumerable.Empty<Movie>();
+    var cinemas = Model?.Cinemas ?? Enumerable.Empty<Cinema>();
+    var categories = Model?.Categorias ?? Enumerable.Empty<Category>();
+    var actors = Model?.Actors ?? Enumerable.Empty<Actor>();
+    var pagination = Model?.Pagination ?? new PaginationVM();
+
+    var firstItem = pagination.TotalItems == 0 ? 0 : ((pagination.Page - 1) * pagination.PageSize) + 1;
+    var lastItem = Math.Min(pagination.Page * pagination.PageSize, pagination.TotalItems);
+
+    var sortOptions = new List<(string Value, string Text)>
+    {
+        ("date_desc", "Newest first"),
+        ("date_asc", "Oldest first"),
+        ("price_asc", "Price: Low to High"),
+        ("price_desc", "Price: High to Low"),
+        ("title_asc", "Title: A - Z")
+    };
+    var currentSort = string.IsNullOrWhiteSpace(Model?.SortBy) ? "date_desc" : Model!.SortBy;
+}
+
+<form method="get"
+      asp-controller="@ControllerConstants.HOME_CONTROLLER"
+      asp-action="Index"
+      asp-area="@AreaConstants.CUSTOMER_AREA">
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row flex-between-center mb-3">
+                <div class="col-sm-auto mb-2 mb-sm-0">
+                    @if (pagination.TotalItems > 0)
+                    {
+                        <h6 class="mb-0">Showing @firstItem-@lastItem of @pagination.TotalItems Movies</h6>
+                    }
+                    else
+                    {
+                        <h6 class="mb-0">No movies available</h6>
+                    }
+                </div>
+                <div class="col-sm-auto">
+                    <div class="row gx-2 align-items-center">
+                        <div class="col-auto"><small>Sort by date &amp; more:</small></div>
+                        <div class="col-auto">
+                            <select class="form-select form-select-sm" name="SortBy" aria-label="Sort movies" onchange="this.form.submit()">
+                                @foreach (var option in sortOptions)
+                                {
+                                    <option value="@option.Value" selected="@(currentSort == option.Value)">@option.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent"><span class="fa fa-search fs--1 text-600"></span></span>
+                        <input class="form-control shadow-none"
+                               type="search"
+                               name="Search"
+                               value="@Model?.Search"
+                               placeholder="Movie, actor or cinema name..."
+                               aria-label="Search movies, actors or cinemas" />
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Category</label>
+                    <select class="form-select form-select-sm" name="CategoriasId" aria-label="Filter by category">
+                        <option value="" selected="@(Model?.CategoriasId == null)">All categories</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id" selected="@(Model?.CategoriasId == category.Id)">@category.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Cinema</label>
+                    <select class="form-select form-select-sm" name="CinemaId" aria-label="Filter by cinema">
+                        <option value="" selected="@(Model?.CinemaId == null)">All cinemas</option>
+                        @foreach (var cinema in cinemas)
+                        {
+                            <option value="@cinema.Id" selected="@(Model?.CinemaId == cinema.Id)">@cinema.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Actor</label>
+                    <select class="form-select form-select-sm" name="ActorId" aria-label="Filter by actor">
+                        <option value="" selected="@(Model?.ActorId == null)">All actors</option>
+                        @foreach (var actor in actors)
+                        {
+                            <option value="@actor.Id" selected="@(Model?.ActorId == actor.Id)">@actor.FullName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Price range</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent">$</span>
+                        <input class="form-control shadow-none" type="number" step="0.01" min="0" name="MinPrice" value="@Model?.MinPrice" placeholder="Min" />
+                        <span class="input-group-text bg-transparent">to</span>
+                        <input class="form-control shadow-none" type="number" step="0.01" min="0" name="MaxPrice" value="@Model?.MaxPrice" placeholder="Max" />
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Showing from</label>
+                    <input class="form-control form-control-sm shadow-none"
+                           type="date"
+                           name="StartAt"
+                           value="@(Model?.StartAt?.ToString("yyyy-MM-dd"))" />
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <label class="form-label fs--1 text-600 mb-1">Movies per page</label>
+                    <select class="form-select form-select-sm" name="Pagination.PageSize" aria-label="Page size">
+                        @foreach (var size in new[] { 6, 12, 24, 48 })
+                        {
+                            <option value="@size" selected="@(pagination.PageSize == size)">@size / page</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-sm btn-falcon-primary">
+                    <span class="fas fa-search me-1"></span>Apply
+                </button>
+                <a class="btn btn-sm btn-falcon-default"
+                   asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                   asp-action="Index"
+                   asp-area="@AreaConstants.CUSTOMER_AREA">Reset</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                @if (!movies.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <span class="fas fa-film fa-3x text-300 mb-3"></span>
+                        <h5 class="mb-1">No movies found</h5>
+                        <p class="text-600 mb-0">Try changing your search or filters.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var movie in movies)
+                    {
+                        var cinema = movie.Auditorium?.Cinema;
+                        var actorNames = movie.MovieActors?
+                            .Where(ma => ma.Actor is not null)
+                            .Select(ma => ma.Actor!.FullName)
+                            .ToList() ?? new List<string>();
+
+                        <div class="mb-4 col-md-6 col-lg-4">
+                            <div class="border rounded-1 h-100 d-flex flex-column justify-content-between pb-3">
+                                <div class="overflow-hidden">
+                                    <div class="position-relative rounded-top overflow-hidden">
+                                        <a class="d-block"
+                                           asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                                           asp-action="Show"
+                                           asp-area="@AreaConstants.CUSTOMER_AREA"
+                                           asp-route-id="@movie.Id">
+                                            @if (!string.IsNullOrEmpty(movie.MainImg))
+                                            {
+                                                <img class="img-fluid rounded-top w-100" src="~/assets/images/movie/@movie.MainImg" alt="@movie.Title" style="height: 230px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-200 d-flex flex-center" style="height: 230px;">
+                                                    <span class="fas fa-film fa-2x text-300"></span>
+                                                </div>
+                                            }
+                                        </a>
+                                        @if (movie.Category is not null)
+                                        {
+                                            <span class="badge rounded-pill bg-success position-absolute mt-2 me-2 z-2 top-0 end-0">@movie.Category.Name</span>
+                                        }
+                                    </div>
+                                    <div class="p-3">
+                                        <h6 class="fs-9 mb-1 text-truncate">
+                                            <a class="text-1100"
+                                               asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                                               asp-action="Show"
+                                               asp-area="@AreaConstants.CUSTOMER_AREA"
+                                               asp-route-id="@movie.Id">@movie.Title</a>
+                                        </h6>
+
+                                        <p class="fs-10 text-600 mb-1 text-truncate">
+                                            <span class="fas fa-user me-1"></span>
+                                            @(actorNames.Any() ? string.Join(", ", actorNames) : "No cast listed")
+                                        </p>
+
+                                        <p class="fs-10 text-600 mb-1 text-truncate">
+                                            <span class="fas fa-building me-1"></span>
+                                            @(cinema?.Name ?? "No cinema")
+                                        </p>
+
+                                        <p class="fs-10 text-600 mb-2 text-truncate">
+                                            <span class="fas fa-map-marker-alt me-1"></span>
+                                            @(cinema?.Location ?? "No location")
+                                        </p>
+
+                                        <div class="d-flex align-items-center justify-content-between border-top pt-2">
+                                            <span class="fs-10 text-600">
+                                                <span class="far fa-clock me-1"></span>@movie.StartAt.ToString("MMM dd, yyyy")
+                                            </span>
+                                            <span class="fs-10 fw-bold text-warning">
+                                                <span class="text-600 fw-normal me-1">Ticket</span>@movie.Price.ToString("C")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-3">
+                                    <a class="btn btn-sm btn-falcon-primary w-100"
+                                       asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                                       asp-action="Show"
+                                       asp-area="@AreaConstants.CUSTOMER_AREA"
+                                       asp-route-id="@movie.Id">
+                                        <span class="fas fa-ticket-alt me-1"></span>Book Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (movies.Any() && pagination.TotalPages > 1)
+        {
+            <div class="card-footer bg-body-tertiary d-flex justify-content-center">
+                <div>
+                    @if (pagination.Page > 1)
+                    {
+                        <a class="btn btn-falcon-default btn-sm me-2" title="Previous"
+                           asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                           asp-action="Index"
+                           asp-area="@AreaConstants.CUSTOMER_AREA"
+                           asp-route-Pagination.Page="@(pagination.Page - 1)"
+                           asp-route-Pagination.PageSize="@pagination.PageSize"
+                           asp-route-Search="@Model?.Search"
+                           asp-route-CategoriasId="@Model?.CategoriasId"
+                           asp-route-CinemaId="@Model?.CinemaId"
+                           asp-route-ActorId="@Model?.ActorId"
+                           asp-route-MinPrice="@Model?.MinPrice"
+                           asp-route-MaxPrice="@Model?.MaxPrice"
+                           asp-route-StartAt="@(Model?.StartAt?.ToString("yyyy-MM-dd"))"
+                           asp-route-SortBy="@Model?.SortBy">
+                            <span class="fas fa-chevron-left"></span>
+                        </a>
+                    }
+
+                    @for (int i = 1; i <= pagination.TotalPages; i++)
+                    {
+                        <a class="btn btn-sm @(pagination.Page == i ? "btn-falcon-primary text-white" : "btn-falcon-default") me-2"
+                           asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                           asp-action="Index"
+                           asp-area="@AreaConstants.CUSTOMER_AREA"
+                           asp-route-Pagination.Page="@i"
+                           asp-route-Pagination.PageSize="@pagination.PageSize"
+                           asp-route-Search="@Model?.Search"
+                           asp-route-CategoriasId="@Model?.CategoriasId"
+                           asp-route-CinemaId="@Model?.CinemaId"
+                           asp-route-ActorId="@Model?.ActorId"
+                           asp-route-MinPrice="@Model?.MinPrice"
+                           asp-route-MaxPrice="@Model?.MaxPrice"
+                           asp-route-StartAt="@(Model?.StartAt?.ToString("yyyy-MM-dd"))"
+                           asp-route-SortBy="@Model?.SortBy">@i</a>
+                    }
+
+                    @if (pagination.Page < pagination.TotalPages)
+                    {
+                        <a class="btn btn-falcon-default btn-sm ms-1" title="Next"
+                           asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                           asp-action="Index"
+                           asp-area="@AreaConstants.CUSTOMER_AREA"
+                           asp-route-Pagination.Page="@(pagination.Page + 1)"
+                           asp-route-Pagination.PageSize="@pagination.PageSize"
+                           asp-route-Search="@Model?.Search"
+                           asp-route-CategoriasId="@Model?.CategoriasId"
+                           asp-route-CinemaId="@Model?.CinemaId"
+                           asp-route-ActorId="@Model?.ActorId"
+                           asp-route-MinPrice="@Model?.MinPrice"
+                           asp-route-MaxPrice="@Model?.MaxPrice"
+                           asp-route-StartAt="@(Model?.StartAt?.ToString("yyyy-MM-dd"))"
+                           asp-route-SortBy="@Model?.SortBy">
+                            <span class="fas fa-chevron-right"></span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</form>

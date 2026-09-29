@@ -40,6 +40,7 @@
     <link href="~/admin//assets/css/user-rtl.min.css" rel="stylesheet" id="user-style-rtl">
     <link href="~/admin//assets/css/user.min.css" rel="stylesheet" id="user-style-default">
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/week_26_27.styles.css" asp-append-version="true" />
     <script>
             var isRTL = JSON.parse(localStorage.getItem('isRTL'));
             if (isRTL) {
@@ -327,7 +328,25 @@
             </li>
 
         }
-
+        else
+        {
+        <li class="nav-item ms-2">
+            <a class="btn btn-outline-primary btn-sm px-3 fw-medium"
+               asp-action="Login"
+               asp-controller="@ControllerConstants.ACCOUNT_CONTROLLER"
+               asp-area="@AreaConstants.IDENTITY_AREA">
+                Login
+            </a>
+        </li>
+        <li class="nav-item ms-2">
+            <a class="btn btn-primary btn-sm px-3 fw-medium"
+               asp-action="Register"
+               asp-controller="@ControllerConstants.ACCOUNT_CONTROLLER"
+               asp-area="@AreaConstants.IDENTITY_AREA">
+                Register
+            </a>
+        </li>
+        }
     </ul>
 </nav>
 @RenderBody()

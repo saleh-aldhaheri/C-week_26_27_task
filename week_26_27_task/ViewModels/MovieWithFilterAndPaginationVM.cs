@@ -8,13 +8,13 @@ public class MovieWithFilterAndPaginationVM
     public IEnumerable<Category>? Categorias { get; set; }
     public IEnumerable<Auditorium>? Auditoriums { get; set; }
     public IEnumerable<Actor>? Actors { get; set; }
-
     public PaginationVM Pagination { get; set; } = new PaginationVM();
     public int? CinemaId { get; set; }
     public int? CategoriasId { get; set; }
     public int? AuditoriumId { get; set; }
     public int? ActorId { get; set; }
     public string? Search { get; set; }
+    public string? SortBy { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     public DateTime? StartAt { get; set; }
