@@ -10,5 +10,6 @@ namespace week_26_27_task.Utilities
         public const string ACTOR_CONTROLLER = "Actor";
         public const string USER_CONTROLLER = "User";
         public const string ACCOUNT_CONTROLLER = "Account";
+        public const string PROFILE_CONTROLLER = "Profile";
     }
 }
