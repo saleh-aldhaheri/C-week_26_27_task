@@ -154,6 +154,14 @@ public class AccountController : Controller
 
         TempData[NotificationConstants.SUCCESS_NOTIFICATION] = $"Welcome {user!.FirstName} {user.LastName} To Your Account";
 
+        if (await _userManager.IsInRoleAsync(user, RoleConstants.CUSTOMER))
+        {
+            return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new
+            {
+                area = AreaConstants.CUSTOMER_AREA
+            });
+        }
+
         return RedirectToAction(nameof(Index), ControllerConstants.HOME_CONTROLLER, new
         {
             area = AreaConstants.ADMIN_AREA

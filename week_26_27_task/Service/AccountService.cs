@@ -37,7 +37,7 @@ public class AccountSerivce : IAccountService
 		if (!result.Succeeded)
 			return ToErrorDictionary(result);
 
-		await _userManager.AddToRoleAsync(user, RoleConstants.ADMIN);
+		await _userManager.AddToRoleAsync(user, RoleConstants.CUSTOMER);
 
 		var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -71,7 +71,7 @@ public class AccountSerivce : IAccountService
 
 	public async Task<Dictionary<string, string>?> EmailConfirmation(EmailConfirmationVM emailConfirmationVm)
 	{
-		var user = await _userManager.FindByIdAsync(emailConfirmationVm.Id);
+		var user = await _userManager.FindByIdAsync(emailConfirmationVm.UserId);
 
 		if (user is null)
 			throw new Exception();
