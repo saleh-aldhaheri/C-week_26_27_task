@@ -50,6 +50,7 @@ namespace week_26_27_task
             builder.Services.AddScoped<IAccountService, AccountSerivce>();
             builder.Services.AddScoped<ISeatService, SeatService>();
             builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
+            builder.Services.AddScoped<IProfileService, ProfileService>();
 
             //helpers
             builder.Services.AddScoped<IFileHelper, LocalFileHelper>();
