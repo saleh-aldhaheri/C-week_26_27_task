@@ -1,0 +1,48 @@
+.seat {
+    cursor: pointer;
+    margin: 0;
+}
+
+.seat-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.seat-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid #d8e2ef;
+    background-color: #f9fafd;
+    color: #5e6e82;
+    font-size: 11px;
+    transition: all .15s ease;
+}
+
+.seat-input:checked + .seat-box {
+    background-color: #2c7be5;
+    border-color: #2c7be5;
+    color: #fff;
+}
+
+.seat-taken {
+    background-color: #eef2f7;
+    border-style: dashed;
+    cursor: not-allowed;
+}
+
+    .seat-taken::after {
+        content: "\00d7";
+        color: #b9c3d0;
+    }
+
+.screen {
+    height: 8px;
+    max-width: 420px;
+    border-radius: 50% / 100% 100% 0 0;
+    background: linear-gradient(to bottom, #d8e2ef, #eef2f7);
+}

@@ -1,0 +1,277 @@
+﻿@model CustomerMovieShowVM
+
+@{
+    var movie = Model.Movie;
+    var auditorium = Model.Auditorium;
+    var cinema = auditorium.Cinema;
+
+    var hasPoster = !string.IsNullOrEmpty(movie.MainImg);
+    var poster = hasPoster ? Url.Content("~/assets/images/movie/" + movie.MainImg) : null;
+
+    var actors = movie.MovieActors?
+        .Where(ma => ma.Actor is not null)
+        .Select(ma => ma.Actor!)
+        .ToList() ?? new List<Actor>();
+
+    var gallery = movie.MovieSubImgs?.ToList() ?? new List<MovieSubImg>();
+
+    var availableSeats = auditorium.Seats;
+    var hasSeats = availableSeats.Any();
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <a class="fs-10 text-600"
+           asp-controller="@ControllerConstants.HOME_CONTROLLER"
+           asp-action="Index"
+           asp-area="@AreaConstants.CUSTOMER_AREA">
+            <span class="fas fa-arrow-left me-1"></span>Back to movies
+        </a>
+
+        <div class="row g-4 mt-1">
+            <div class="col-lg-5">
+                <div class="position-relative rounded-1 overflow-hidden">
+                    @if (poster is not null)
+                    {
+                        <img class="img-fluid rounded-1 w-100"
+                             src="@poster"
+                             alt="@movie.Title"
+                             style="height: 420px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-200 d-flex flex-center rounded-1" style="height: 420px;">
+                            <span class="fas fa-film fa-3x text-300"></span>
+                        </div>
+                    }
+                    @if (movie.Category is not null)
+                    {
+                        <span class="badge rounded-pill bg-success position-absolute mt-2 me-2 z-2 top-0 end-0">@movie.Category.Name</span>
+                    }
+                </div>
+
+                @if (gallery.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        @foreach (var sub in gallery)
+                        {
+                            <a href="#!" class="d-block">
+                                <img class="rounded-1"
+                                     src="~/assets/images/movieSubImage/@sub.Img"
+                                     alt="@movie.Title gallery image"
+                                     style="width: 84px; height: 84px; object-fit: cover;" />
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-7">
+                <h3 class="mb-2">@movie.Title</h3>
+
+                @if (movie.Category is not null)
+                {
+                    <a class="badge bg-primary text-decoration-none mb-3" href="#!">@movie.Category.Name</a>
+                }
+
+                <ul class="list-unstyled fs-10 mb-3">
+                    <li class="mb-2">
+                        <span class="fas fa-film text-500 me-2"></span>
+                        Cinema: <strong>@(cinema?.Name ?? "N/A")</strong>
+                    </li>
+                    <li class="mb-2">
+                        <span class="fas fa-map-marker-alt text-500 me-2"></span>
+                        Location: <strong>@(cinema?.Location ?? "N/A")</strong>
+                    </li>
+                    <li class="mb-2">
+                        <span class="fas fa-chair text-500 me-2"></span>
+                        Auditorium: <strong>@auditorium.Name</strong>
+                    </li>
+                    <li class="mb-2">
+                        <span class="far fa-clock text-500 me-2"></span>
+                        Starts at: <strong>@movie.StartAt.ToString("f")</strong>
+                    </li>
+                </ul>
+
+                @if (!string.IsNullOrEmpty(movie.Description))
+                {
+                    <p class="fs-10 text-600">@movie.Description</p>
+                }
+
+                <div class="d-flex align-items-center justify-content-between border-top border-bottom py-2 my-2">
+                    <span class="small text-600">Ticket price</span>
+                    <span class="fw-bold text-warning">@movie.Price.ToString("C")</span>
+                </div>
+
+                <a class="btn btn-primary" href="#seat-map">
+                    <span class="fas fa-ticket-alt me-1"></span>Select seats
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3" id="seat-map">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Choose your seats</h5>
+            <span class="fs-10 text-600">
+                <span class="fas fa-chair me-1"></span>@auditorium.Name · @(cinema?.Name ?? "N/A")
+            </span>
+        </div>
+
+        @if (!hasSeats)
+        {
+            <div class="text-center py-5">
+                <span class="fas fa-couch fa-3x text-300 mb-3"></span>
+                <h5 class="mb-1">Sold out</h5>
+                <p class="text-600 mb-0">No seats are available for this show.</p>
+            </div>
+        }
+        else
+        {
+            <form method="post"
+                  asp-controller="@ControllerConstants.HOME_CONTROLLER"
+                  asp-action="Book"
+                  asp-area="@AreaConstants.CUSTOMER_AREA"
+                  asp-route-id="@movie.Id">
+                <input type="hidden" name="MovieId" value="@movie.Id" />
+
+                <div class="text-center mb-2">
+                    <div class="screen mx-auto"></div>
+                    <small class="text-600 fs-10 text-uppercase">Screen</small>
+                </div>
+
+                <div class="d-flex flex-column align-items-center mb-3 overflow-auto">
+                    @for (int r = 1; r <= auditorium.Rows; r++)
+                    {
+                        var rowLabel = r <= 26 ? ((char)('A' + r - 1)).ToString() : r.ToString();
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="fs-10 text-600 me-2 text-end" style="width: 20px;">@rowLabel</span>
+                            @for (int c = 1; c <= auditorium.Columns; c++)
+                            {
+                                var seat = availableSeats.FirstOrDefault(s => s.Row == r && s.Column == c);
+                                if (seat is not null)
+                                {
+                                    <label class="seat me-1">
+                                        <input class="seat-input" type="checkbox" name="seatIds" value="@seat.Id" />
+                                        <span class="seat-box">@c</span>
+                                    </label>
+                                }
+                                else
+                                {
+                                    <span class="seat me-1">
+                                        <span class="seat-box seat-taken"></span>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-top pt-3">
+                    <div class="fs-10 text-600 mb-2 mb-sm-0">
+                        <span class="fas fa-couch me-1"></span>Available
+                        <span class="ms-3"><span class="fas fa-ban me-1"></span>Taken</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="fs-10 text-600 me-3">
+                            Seats: <strong id="seat-count">0</strong>
+                        </span>
+                        <span class="fs-9 fw-bold text-warning me-3">
+                            Total: $<span id="seat-total">0.00</span>
+                        </span>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button id="reserve-btn" class="btn btn-primary btn-sm" type="submit" disabled>
+                                    <span class="fas fa-check me-1"></span>Reserve
+                                </button>
+                            }
+                            else
+                            {
+                                <a class="btn btn-primary btn-sm"
+                                   asp-controller="@ControllerConstants.ACCOUNT_CONTROLLER"
+                                   asp-action="Login"
+                                   asp-area="@AreaConstants.IDENTITY_AREA"
+                                   asp-route-returnUrl="@Context.Request.Path">
+                                      <span class="fas fa-check me-1"></span>Reserve
+                                </a>
+                            }
+
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="mb-3">Cast</h5>
+        @if (actors.Any())
+        {
+            <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+                @foreach (var actor in actors)
+                {
+                    <div class="col text-center">
+                        @if (!string.IsNullOrEmpty(actor.Img))
+                        {
+                            <img class="rounded-circle shadow-sm"
+                                 src="~/assets/images/actor/@actor.Img"
+                                 alt="@actor.FullName"
+                                 style="width: 80px; height: 80px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-200 d-flex flex-center mx-auto"
+                                 style="width: 80px; height: 80px;">
+                                <span class="fs-8 fw-bold text-600">@(string.IsNullOrWhiteSpace(actor.FullName) ? "?" : actor.FullName.Trim()[0].ToString().ToUpper())</span>
+                            </div>
+                        }
+                        <div class="fs-10 mt-2">@actor.FullName</div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-600 fs-10 mb-0">No cast listed for this movie.</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var inputs = document.querySelectorAll('.seat-input');
+            var countEl = document.getElementById('seat-count');
+            var totalEl = document.getElementById('seat-total');
+            var submitEl = document.getElementById('reserve-btn');
+
+            if (!countEl || !totalEl || !submitEl) {
+                return;
+            }
+
+            var price = @movie.Price.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            function update() {
+                var count = 0;
+                inputs.forEach(function (input) {
+                    if (input.checked) {
+                        count++;
+                    }
+                });
+
+                countEl.textContent = count;
+                totalEl.textContent = (count * price).toFixed(2);
+                submitEl.disabled = count === 0;
+            }
+
+            inputs.forEach(function (input) {
+                input.addEventListener('change', update);
+            });
+
+            update();
+        })();
+    </script>
+}
