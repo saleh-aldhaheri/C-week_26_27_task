@@ -27,7 +27,7 @@ namespace week_26_27_task.Models
         public Category? Category { get; set; } 
 
         public int AuditoriumId { get; set; }
-        public Auditorium Auditorium { get; set; } = null!;
+        public Auditorium? Auditorium { get; set; }
 
         public ICollection<MovieSubImg> MovieSubImgs { get; set; } = new List<MovieSubImg>();
         public ICollection<MovieActor> MovieActors { get; set; } = new List<MovieActor>();

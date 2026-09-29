@@ -35,29 +35,18 @@ public class DbInitializer : IDbInitializer
 
     private void SeedRoles()
     {
-        if (_roleManager.Roles.Any())
-            return;
-
-        _roleManager.CreateAsync(new IdentityRole
+        foreach (var role in new[] { RoleConstants.SUPER_ADMIN, RoleConstants.ADMIN, RoleConstants.CUSTOMER })
         {
-            Name = RoleConstants.SUPER_ADMIN
-        })
-            .GetAwaiter()
-            .GetResult();
-
-        _roleManager.CreateAsync(new IdentityRole
-        {
-            Name = RoleConstants.ADMIN
-        })
-            .GetAwaiter()
-            .GetResult();
-
-        _roleManager.CreateAsync(new IdentityRole
-        {
-            Name = RoleConstants.CUSTOMER
-        })
-            .GetAwaiter()
-            .GetResult();
+            if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+            {
+                _roleManager.CreateAsync(new IdentityRole
+                {
+                    Name = role
+                })
+                    .GetAwaiter()
+                    .GetResult();
+            }
+        }
     }
 
     private void SeedAdmin()

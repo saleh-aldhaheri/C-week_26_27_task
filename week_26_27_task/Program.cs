@@ -123,7 +123,7 @@ namespace week_26_27_task
             
             app.MapControllerRoute(
                name: "default",
-               pattern: "{Area=Identity}/{controller=Account}/{action=Login}/{id?}")
+               pattern: "{Area=Customer}/{controller=Home}/{action=Index}/{id?}")
                .WithStaticAssets();
 
             using (var scope = app.Services.CreateScope())
